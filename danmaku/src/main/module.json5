@@ -1,0 +1,9 @@
+{
+  "module": {
+    "name": "danmaku",
+    "type": "har",
+    "deviceTypes": [
+      "default"
+    ]
+  }
+}
