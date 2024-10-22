@@ -17,12 +17,15 @@ internal import std.sync.Timer
 internal import std.time.Duration
 internal import std.time.DateTime
 internal import std.collection.concurrent.BlockingQueue
-internal import std.math.floor
-internal import std.math.abs
+internal import std.convert.*
+internal import std.math.*
 
 let MULTIPLIERVALUE: Int64 = 37
 let ALPHA_MAX: Int64 = 255
 let ALPHA_TRANSPARENT: Int64 = 0
+let NOTHING_RENDERING: Int64 = 0
+let CACHE_RENDERING: Int64 = 1
+let TEXT_RENDERING: Int64 = 2
 
 extend<T> Option<T> {
     operator func ()(): T {
