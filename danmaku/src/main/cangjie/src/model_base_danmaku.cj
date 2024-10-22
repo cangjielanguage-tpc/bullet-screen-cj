@@ -4,7 +4,7 @@
 
 package danmaku
 
-public abstract class BaseDanmaku <: Hashable {
+public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
     public static let DANMAKU_BR_CHAR: String = "/n"
     public static let TYPE_SCROLL_RL: Int64 = 1
     public static let TYPE_SCROLL_LR: Int64 = 6
@@ -346,6 +346,37 @@ public abstract class BaseDanmaku <: Hashable {
             return false
         }
         return timeOffset != 0
+    }
+
+    public operator func ==(other: BaseDanmaku): Bool {
+        return compare(other) == Ordering.EQ
+    }
+
+    public operator func !=(other: BaseDanmaku): Bool {
+        return compare(other) != Ordering.EQ
+    }
+
+    public operator func >(other: BaseDanmaku): Bool {
+        return compare(other) == Ordering.GT
+    }
+
+    public operator func <(other: BaseDanmaku): Bool {
+        return compare(other) == Ordering.LT
+    }
+
+    public operator func >=(other: BaseDanmaku): Bool {
+        return compare(other) == Ordering.GT || compare(other) == Ordering.EQ
+    }
+
+    public operator func <=(other: BaseDanmaku): Bool {
+        return compare(other) == Ordering.LT || compare(other) == Ordering.EQ
+    }
+
+    public open func compare(other: BaseDanmaku): Ordering {
+        if (DanmakuUtils.isDuplicate(this, other)) {
+            return Ordering.EQ
+        }
+        return DanmakuUtils.compare(this, other)
     }
 
     public func hashCode(): Int64 {

@@ -72,38 +72,44 @@ public class DanmakuUtils {
         return false
     }
 
-    public static func compare(o1: ?BaseDanmaku, o2: ?BaseDanmaku): Int64 {
+    public static func compare(o1: ?BaseDanmaku, o2: ?BaseDanmaku): Ordering {
         var obj1: BaseDanmaku
         var obj2: BaseDanmaku
         if (let Some(v) <- o1) {
             obj1 = v
         } else {
-            return -1
+            return Ordering.LT
         }
         if (let Some(v) <- o2) {
             obj2 = v
         } else {
-            return 1
+            return Ordering.GT
         }
         if (refEq(obj1, obj2)) {
-            return 0
+            return Ordering.EQ
         }
         let val: Int64 = obj1.getTime() - obj2.getTime()
         if (val > 0) {
-            return 1
+            return Ordering.GT
         } else if (val < 0) {
-            return -1
+            return Ordering.LT
         }
         var r: Int64 = obj1.index - obj2.index
         if (r != 0) {
             if (r < 0) {
-                return -1
+                return Ordering.LT
             } else {
-                return 1
+                return Ordering.GT
             }
         }
         r = obj1.hashCode() - obj1.hashCode()
-        return r
+        if (r > 0) {
+            return Ordering.GT
+        } else if (r < 0) {
+            return Ordering.LT
+        } else {
+            return Ordering.EQ
+        }
     }
 
     public static func fillText(danmaku: BaseDanmaku, text: String): Unit {
