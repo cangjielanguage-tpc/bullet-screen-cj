@@ -16,19 +16,19 @@ public let ST_BY_LIST: Int64 = 4
 public interface IDanmakus {
     func addItem(item: BaseDanmaku): Bool
 
-    func removeItem(item: BaseDanmaku): Bool
+    func removeItem(item: ?BaseDanmaku): Bool
 
-    func subnew(startTime: Int64, endTime: Int64): IDanmakus
+    func subnew(startTime: Int64, endTime: Int64): ?IDanmakus
 
-    func sub(startTime: Int64, endTime: Int64): IDanmakus
+    func sub(startTime: Int64, endTime: Int64): ?IDanmakus
 
     func size(): Int64
 
     func clear(): Unit
 
-    func first(): BaseDanmaku
+    func first(): ?BaseDanmaku
 
-    func last(): BaseDanmaku
+    func last(): ?BaseDanmaku
 
     func contains(item: BaseDanmaku): Bool
 
@@ -36,7 +36,7 @@ public interface IDanmakus {
 
     func setSubItemsDuplicateMergingEnabled(enable: Bool): Unit
 
-    func getCollection(): Collection<BaseDanmaku>
+    func getCollection(): SortedSet<BaseDanmaku>
 
     func forEachSync(consumer: Consumer<BaseDanmaku, Any>): Unit
 
@@ -85,9 +85,9 @@ public open class BaseComparator {
         mDuplicateMergingEnable = enable
     }
 
-    public open func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Int64 {
+    public open func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Ordering {
         if (mDuplicateMergingEnable && DanmakuUtils.isDuplicate(obj1, obj2)) {
-            return 0
+            return Ordering.EQ
         }
         return DanmakuUtils.compare(obj1, obj2)
     }
@@ -98,7 +98,7 @@ public class TimeComparator <: BaseComparator {
         super(duplicateMergingEnabled: duplicateMergingEnabled)
     }
 
-    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Int64 {
+    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Ordering {
         return super.compare(obj1, obj2)
     }
 }
@@ -108,16 +108,16 @@ public class YPosComparator <: BaseComparator {
         super(duplicateMergingEnabled: duplicateMergingEnabled)
     }
 
-    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Int64 {
+    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Ordering {
         if (mDuplicateMergingEnable && DanmakuUtils.isDuplicate(obj1, obj2)) {
-            return 0
+            return Ordering.EQ
         }
         if (obj1.getTop() > obj2.getTop()) {
-            return 1
+            return Ordering.GT
         } else if (obj1.getTop() < obj2.getTop()) {
-            return -1
+            return Ordering.LT
         } else {
-            return 0
+            return Ordering.EQ
         }
     }
 }
@@ -127,16 +127,16 @@ public class YPosDescComparator <: BaseComparator {
         super(duplicateMergingEnabled: duplicateMergingEnabled)
     }
 
-    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Int64 {
+    public override func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Ordering {
         if (mDuplicateMergingEnable && DanmakuUtils.isDuplicate(obj1, obj2)) {
-            return 0
+            return Ordering.EQ
         }
         if (obj2.getTop() > obj1.getTop()) {
-            return 1
+            return Ordering.GT
         } else if (obj2.getTop() < obj1.getTop()) {
-            return -1
+            return Ordering.LT
         } else {
-            return 0
+            return Ordering.EQ
         }
     }
 }

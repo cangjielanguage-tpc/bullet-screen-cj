@@ -14,6 +14,7 @@ internal import std.collection.ArrayList
 internal import std.collection.LinkedList
 internal import std.random.Random
 internal import std.sync.Timer
+internal import std.sync.ReentrantMutex
 internal import std.time.Duration
 internal import std.time.DateTime
 internal import std.collection.concurrent.BlockingQueue
