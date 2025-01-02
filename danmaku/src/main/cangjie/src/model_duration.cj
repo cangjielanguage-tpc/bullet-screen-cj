@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -18,13 +18,13 @@ public class DanmakuDuration {
 
     public func setValue(initialDuration: Int64): Unit {
         mInitialDuration = initialDuration
-        value = (mInitialDuration * Int64(factor))
+        value = Int64(Float64(mInitialDuration) * factor)
     }
 
     public func setFactor(f: Float64): Unit {
         if (factor != f) {
             factor = f
-            value = (mInitialDuration * Int64(f))
+            value = Int64(Float64(mInitialDuration) * f)
         }
     }
 }

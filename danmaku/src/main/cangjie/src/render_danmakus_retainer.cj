@@ -37,18 +37,16 @@ public class DanmakusRetainer {
 
     public func fix(danmaku: BaseDanmaku, disp: IDisplayer, verifier: ?Verifier): Unit {
         let danmakuType: Int64 = danmaku.getType()
-        if (let Some(v) <- verifier) {
-            if (danmakuType == BaseDanmaku.TYPE_SCROLL_RL) {
-                rldrInstance().fix(danmaku, disp, v)
-            } else if (danmakuType == BaseDanmaku.TYPE_SCROLL_LR) {
-                lrdrInstance().fix(danmaku, disp, v)
-            } else if (danmakuType == BaseDanmaku.TYPE_FIX_TOP) {
-                ftdrInstance().fix(danmaku, disp, v)
-            } else if (danmakuType == BaseDanmaku.TYPE_FIX_BOTTOM) {
-                fbdrInstance().fix(danmaku, disp, v)
-            } else if (danmakuType == BaseDanmaku.TYPE_SPECIAL) {
-                danmaku.layout(disp, 0.0, 0.0)
-            }
+        if (danmakuType == BaseDanmaku.TYPE_SCROLL_RL) {
+            rldrInstance().fix(danmaku, disp, verifier)
+        } else if (danmakuType == BaseDanmaku.TYPE_SCROLL_LR) {
+            lrdrInstance().fix(danmaku, disp, verifier)
+        } else if (danmakuType == BaseDanmaku.TYPE_FIX_TOP) {
+            ftdrInstance().fix(danmaku, disp, verifier)
+        } else if (danmakuType == BaseDanmaku.TYPE_FIX_BOTTOM) {
+            fbdrInstance().fix(danmaku, disp, verifier)
+        } else if (danmakuType == BaseDanmaku.TYPE_SPECIAL) {
+            danmaku.layout(disp, 0.0, 0.0)
         }
     }
 
@@ -82,7 +80,7 @@ public interface IDanmakusRetainer {
     func clear(): Unit
 }
 
-class RetainerState {
+public class RetainerState {
     public var lines: Int64 = 0
     public var insertItem: ?BaseDanmaku = Option<BaseDanmaku>.None
     public var firstItem: ?BaseDanmaku = Option<BaseDanmaku>.None
@@ -94,7 +92,6 @@ class RetainerState {
     public var willHit: Bool = false
 }
 
-var outer: AlignTopRetainer = AlignTopRetainer() // TODO..
 
 class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
     public var disp: IDisplayer = OhcjDisplayer()
@@ -107,6 +104,11 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
     var overwriteInsert: Bool = false
     var shown: Bool = false
     var willHit: Bool = false
+    var outer: IAlignTopRetainer
+
+    init(outer: IAlignTopRetainer) {
+        this.outer = outer
+    }
 
     public override func before(): Unit {
         lines = 0
@@ -121,7 +123,7 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
 
     public override func accept(item: BaseDanmaku): Int64 {
         if (outer.mCancelFixingFlag) {
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+            return ACTION_BREAK
         }
         lines++
         if (item == drawItem) {
@@ -129,7 +131,7 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
             lastItem = None
             shown = true
             willHit = false
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+            return ACTION_BREAK
         }
 
         if (firstItem.isNone()) {
@@ -138,7 +140,7 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
 
         if (drawItem.paintHeight + item.getTop() > disp.getHeight()) {
             overwriteInsert = true
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+            return ACTION_BREAK
         }
 
         if (minRightRow.isNone()) {
@@ -154,11 +156,11 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
             willHit = DanmakuUtils.willHitInDuration(disp, item, drawItem, drawItem.getDuration(), v.currMillisecond)
             if (!willHit) {
                 insertItem = item
-                return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+                return ACTION_BREAK
             }
         }
         lastItem = item
-        return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+        return ACTION_CONTINUE
     }
 
     public func result(): ?RetainerState {
@@ -175,10 +177,14 @@ class RetainerConsumerTop <: Consumer<BaseDanmaku, RetainerState> {
     }
 }
 
-open class AlignTopRetainer <: IDanmakusRetainer {
-    protected var mVisibleDanmakus: Danmakus = Danmakus(DanmakusArgs(sortType: ST_BY_YPOS))
+abstract class IAlignTopRetainer <: IDanmakusRetainer {
+    protected var mVisibleDanmakus: Danmakus = Danmakus(ST_BY_YPOS)
     protected var mCancelFixingFlag: Bool = false
-    protected var mConsumerTop: RetainerConsumerTop = RetainerConsumerTop()
+    protected var mConsumerTop: RetainerConsumerTop
+
+    public init(that: IAlignTopRetainer) {
+        mConsumerTop = RetainerConsumerTop(that)
+    }
 
     public open override func fix(drawItem: BaseDanmaku, disp: IDisplayer, verifier: ?Verifier): Unit {
         if (drawItem.isOutside()) {
@@ -201,7 +207,7 @@ open class AlignTopRetainer <: IDanmakusRetainer {
             var overwriteInsert: Bool = false
             mConsumerTop.disp = disp
             mConsumerTop.drawItem = drawItem
-//            mVisibleDanmakus.forEachSync(mConsumerTop) TODO..
+            mVisibleDanmakus.forEachSync(mConsumerTop)
             let retainerState: ?RetainerState = mConsumerTop.result()
             if (let Some(v) <- retainerState) {
                 lines = v.lines
@@ -282,7 +288,16 @@ open class AlignTopRetainer <: IDanmakusRetainer {
     }
 }
 
-open class FTDanmakusRetainer <: AlignTopRetainer {
+class AlignTopRetainer <: IAlignTopRetainer {
+    public init() {
+        super(this)
+    }
+}
+
+abstract class IFTDanmakusRetainer <: IAlignTopRetainer {
+    public init(that: IAlignTopRetainer) {
+        super(that)
+    }
     protected open override func isOutVerticalEdge(overwriteInsert: Bool, drawItem: BaseDanmaku, disp: IDisplayer,
         topPos: Float64, firstItem: ?BaseDanmaku, lastItem: ?BaseDanmaku): Bool {
         if (topPos + drawItem.paintHeight > disp.getHeight()) {
@@ -292,7 +307,12 @@ open class FTDanmakusRetainer <: AlignTopRetainer {
     }
 }
 
-var outer2: AlignBottomRetainer = AlignBottomRetainer() //TODO..
+class FTDanmakusRetainer <: IFTDanmakusRetainer{
+    public init() {
+        super(this)
+    }
+}
+
 
 class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
     public var disp: IDisplayer = OhcjDisplayer()
@@ -302,6 +322,10 @@ class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
     public var drawItem: BaseDanmaku = Danmaku("")
     var willHit: Bool = false
     var topPos: Float64 = 0.0
+    var outer: AlignBottomRetainer
+    public init(outer: AlignBottomRetainer) {
+        this.outer = outer
+    }
 
     public override func before(): Unit {
         lines = 0
@@ -311,26 +335,26 @@ class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
     }
 
     public override func accept(item: BaseDanmaku): Int64 {
-        if (outer2.mCancelFixingFlag) {
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+        if (outer.mCancelFixingFlag) {
+            return ACTION_BREAK
         }
         lines++
         if (item == drawItem) {
             removeItem = None
             willHit = false
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+            return ACTION_BREAK
         }
 
         if (firstItem.isNone()) {
             firstItem = item
             if (firstItem().getBottom() != disp.getHeight()) {
-                return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+                return ACTION_BREAK
             }
         }
 
         if (topPos < Float64(disp.getAllMarginTop())) {
             removeItem = None
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+            return ACTION_BREAK
         }
 
         // 检查碰撞
@@ -338,11 +362,11 @@ class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
             willHit = DanmakuUtils.willHitInDuration(disp, item, drawItem, drawItem.getDuration(), v.currMillisecond)
             if (!willHit) {
                 removeItem = item
-                return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+                return ACTION_BREAK
             }
         }
         topPos = item.getTop() - Float64(disp.getMargin()) - drawItem.paintHeight
-        return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+        return ACTION_CONTINUE
     }
 
     public func result(): ?RetainerState {
@@ -355,9 +379,13 @@ class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
     }
 }
 
-class AlignBottomRetainer <: FTDanmakusRetainer {
-//    protected var mVisibleDanmakus: Danmakus = Danmakus(DanmakusArgs(sortType: ST_BY_YPOS_DESC)) TODO..
-    protected var mConsumerBottom: RetainerConsumerBottom = RetainerConsumerBottom()
+class AlignBottomRetainer <: IFTDanmakusRetainer {
+    protected var mConsumerBottom: RetainerConsumerBottom = unsafe {zeroValue<RetainerConsumerBottom>()}
+    public init() {
+        super(this)
+        mVisibleDanmakus = Danmakus(ST_BY_YPOS_DESC)
+        this.mConsumerBottom = RetainerConsumerBottom(this)
+    }
 
     public override func fix(drawItem: BaseDanmaku, disp: IDisplayer, verifier: ?Verifier): Unit {
         if (drawItem.isOutside()) {
@@ -382,7 +410,7 @@ class AlignBottomRetainer <: FTDanmakusRetainer {
             mConsumerBottom.topPos = topPos
             mConsumerBottom.disp = disp
             mConsumerBottom.drawItem = drawItem
-//            mVisibleDanmakus.forEachSync(mConsumerBottom) TODO..
+            mVisibleDanmakus.forEachSync(mConsumerBottom)
             let retainerState: ?RetainerState = mConsumerBottom.result()
             topPos = mConsumerBottom.topPos
             if (let Some(v) <- retainerState) {
@@ -433,3 +461,4 @@ class AlignBottomRetainer <: FTDanmakusRetainer {
         mVisibleDanmakus.clear()
     }
 }
+

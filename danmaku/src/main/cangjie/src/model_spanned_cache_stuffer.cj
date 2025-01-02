@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -71,20 +71,20 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
         super.measure(danmaku, paint, fromWorkerThread)
     }
 
-    public override func drawStroke(danmaku: BaseDanmaku, lineText: String, canvas: CanvasRenderingContext2D,
+    public override func drawStroke(danmaku: BaseDanmaku, lineText: String, canvas: DanmakuCanvas2D,
         left: Float64, top: Float64, paint: DanmakuPaint): Unit {
-        if (danmaku.obj.isNone()) {
+        if (danmaku.obj is Unit) {
             super.drawStroke(danmaku, lineText, canvas, left, top, paint)
         }
     }
 
-    public override func drawText(danmaku: BaseDanmaku, lineText: String, canvas: CanvasRenderingContext2D,
+    public override func drawText(danmaku: BaseDanmaku, lineText: String, canvas: DanmakuCanvas2D,
         left: Float64, top: Float64, paint: DanmakuPaint, fromWorkerThread: Bool, displayerConfig: DisplayerConfig): Unit {
-        if (danmaku.obj.isNone()) {
+        if (danmaku.obj is Unit) {
             super.drawText(danmaku, lineText, canvas, left, top, paint, fromWorkerThread, displayerConfig)
             return
         }
-        let imgInfo: ImgObj = if (let Some(v) <- danmaku.obj() as ImgObj) {
+        let imgInfo: ImgObj = if (let Some(v) <- danmaku.obj as ImgObj) {
             v
         } else {
             ImgObj("", 0.0, 0.0)
@@ -95,32 +95,32 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
         let requestRemeasure: Bool = 0 != (danmaku.requestFlags & Int64(BaseDanmaku.FLAG_REQUEST_REMEASURE))
         let requestInvalidate: Bool = 0 != (danmaku.requestFlags & Int64(BaseDanmaku.FLAG_REQUEST_INVALIDATE))
         if (requestInvalidate) {
-            let currentFlags: Int64 = danmaku.requestFlags
-            let invertedFlag: Int64 = Int64(reverse(BaseDanmaku.FLAG_REQUEST_INVALIDATE))
-            danmaku.requestFlags = currentFlags & invertedFlag
+//            let currentFlags: Int64 = danmaku.requestFlags
+//            let invertedFlag: Int64 = Int64(reverse(BaseDanmaku.FLAG_REQUEST_INVALIDATE))
+            danmaku.requestFlags &= !BaseDanmaku.FLAG_REQUEST_INVALIDATE
         }
         var needRestore: Bool = false
         let ascent: Float64 = measureTextHeight(paint) * -0.9
         if (left != 0.0 && top != 0.0) {
-            canvas.save()
-            canvas.translate(left, (top + ascent))
+            canvas.context.save()
+            canvas.context.translate(left, (top + ascent))
             needRestore = true
         }
         let imageBitmap: ImageBitmap = ImageBitmap(src)
-        canvas.drawImage(imageBitmap, 0.0, 0.0, width, height)
-        canvas.fillStyle(0x2233B1) // #8A2233B1
+        canvas.context.drawImage(imageBitmap, 0.0, 0.0, width, height)
+        canvas.context.fillStyle(0x2233B1) // #8A2233B1
         var rectWidth: Float64 = danmaku.paintWidth - width - 2.0 * danmaku.padding
         if (danmaku.borderColor != 0) {
             rectWidth -= 2.0 * displayerConfig.BORDER_WIDTH
         }
-        canvas.fillRect(width, 0.0, rectWidth, height)
+        canvas.context.fillRect(width, 0.0, rectWidth, height)
         applyPaintToCanvas(paint, canvas)
         if (needRestore) {
-            canvas.translate(0.0, -ascent)
+            canvas.context.translate(0.0, -ascent)
         }
-        canvas.fillText(danmaku.text, width, 0.0)
+        canvas.context.fillText(danmaku.text, width, 0.0)
         if (needRestore) {
-            canvas.restore()
+            canvas.context.restore()
         }
     }
 

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
 
-public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
+public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToString & Equatable<BaseDanmaku> {
     public static let DANMAKU_BR_CHAR: String = "/n"
     public static let TYPE_SCROLL_RL: Int64 = 1
     public static let TYPE_SCROLL_LR: Int64 = 6
@@ -15,8 +15,10 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
 
     public static let INVISIBLE: Int64 = 0
     public static let VISIBLE: Int64 = 1
-    public static let FLAG_REQUEST_REMEASURE: UInt32 = 0x1
-    public static let FLAG_REQUEST_INVALIDATE: UInt32 = 0x2
+    public static let FLAG_REQUEST_REMEASURE: Int64 = 0x1
+    public static let FLAG_REQUEST_INVALIDATE: Int64 = 0x2
+
+    var comparefunc: ?(BaseDanmaku, BaseDanmaku) -> Ordering = None
 
     /**
      * 显示时间(毫秒)
@@ -36,19 +38,19 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
     /**
      * 多行文本: 如果有包含换行符需事先拆分到lines
      */
-    public var lines: Array<String> = Array<String>(4096, item: "")
+    public var lines: ?Array<String> = None
 
     /**
      * 保存一些数据的引用(库内部使用, 外部使用请用tag)
      */
-    public var obj: ?Any = None
+    public var obj: Any = ()
 
     /**
      * 可保存一些自定义数据的引用(外部使用).
      * 除非主动set null,否则不会自动释放引用.
      * 确定你会主动set null, 否则不要使用这个字段引用大内存的对象实例.
      */
-    public var tag: ?Any = None
+    private var tag: Any = ()
 
     /**
      * 文本颜色
@@ -78,7 +80,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
     /**
      * 字体大小
      */
-    public var textSize: Float64 = -1.0
+    public var textSize: Float64 = 65.0
 
     /**
      * 边框的颜色,0表示无边框
@@ -118,7 +120,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
     /**
      * 是否可见
      */
-    public var visibility: Int64 = 0
+    private var visibility: Int64 = 0
 
     /**
      * 重置位 visible
@@ -221,6 +223,12 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
     }
 
     public open func isShown(): Bool {
+        let a =visibility
+        let b =BaseDanmaku.VISIBLE
+        let c = visibility == BaseDanmaku.VISIBLE
+        let d = visibleResetFlag
+        let e = flags().VISIBLE_RESET_FLAG
+        let f = visibleResetFlag == flags().VISIBLE_RESET_FLAG
         return visibility == BaseDanmaku.VISIBLE
             && visibleResetFlag == flags().VISIBLE_RESET_FLAG
     }
@@ -229,7 +237,11 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
         if (let Some(v) <- ctime) {
             return v - getActualTime() >= duration.value
         } else {
-            return mTimer.isNone() || isTimeOut(ctime: mTimer.getOrThrow().currMillisecond)
+            return if (let Some(v) <-mTimer ) {
+                isTimeOut(ctime: v.currMillisecond)
+            } else {
+                true
+            }
         }
     }
 
@@ -372,7 +384,13 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
         return compare(other) == Ordering.LT || compare(other) == Ordering.EQ
     }
 
+    func setCompareMethod(other: (BaseDanmaku, BaseDanmaku) -> Ordering): Unit {
+        this.comparefunc = other
+    }   
     public open func compare(other: BaseDanmaku): Ordering {
+        if (let Some(v) <- comparefunc) {
+            return v(this, other)
+        }
         if (DanmakuUtils.isDuplicate(this, other)) {
             return Ordering.EQ
         }
@@ -381,5 +399,9 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> {
 
     public func hashCode(): Int64 {
         return mHashCode
+    }
+
+    public func toString(): String {
+        return "BaseDanmaku{time=${time}, duration=${duration.value}, visibility=${visibility}, text=${text}"
     }
 }

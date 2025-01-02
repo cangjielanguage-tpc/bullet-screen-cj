@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -11,7 +11,7 @@ public interface IDanmakuFilter<T> {
     func filter(danmaku: ?BaseDanmaku, index: Int64, totalsizeInScreen: Int64, timer: DanmakuTimer,
         fromCachingTask: Bool, config: DanmakuContext): Bool
 
-    func setData(data: T): Unit
+    func setData(data: ?T): Unit
 
     func reset(): Unit
 
@@ -62,11 +62,13 @@ public class TypeDanmakuFilter <: BaseDanmakuFilter<ArrayList<Int64>> {
         return filtered
     }
 
-    public override func setData(data: ArrayList<Int64>): Unit {
+    public override func setData(data: ?ArrayList<Int64>): Unit {
         reset()
-        if (!data.isEmpty()) {
-            for (value in data) {
-                enableType(value)
+        if(let Some(v) <- data) {
+            if (!v.isEmpty()) {
+                for (value in v) {
+                    enableType(value)
+                }
             }
         }
     }
@@ -126,14 +128,13 @@ public class QuantityDanmakuFilter <: BaseDanmakuFilter<Int64> {
         }
     }
 
-    public override func setData(data: Int64): Unit {
+    public override func setData(data: ?Int64): Unit {
         reset()
-        if (data == 0) {
-            return
-        }
-        if (data != mMaximumSize) {
-            mMaximumSize = data + data / 5
-            mFilterFactor = 1 / mMaximumSize
+        if (let Some(v) <- data) {
+            if (v != mMaximumSize) {
+                mMaximumSize = v + v / 5
+                mFilterFactor = 1 / mMaximumSize
+            }
         }
     }
 
@@ -180,7 +181,7 @@ public class ElapsedTimeFilter <: BaseDanmakuFilter<Any> {
         return false
     }
 
-    public override func setData(data: Any): Unit {
+    public override func setData(data: ?Any): Unit {
         reset()
     }
 
@@ -215,11 +216,13 @@ public class TextColorFilter <: BaseDanmakuFilter<ArrayList<UInt32>> {
         return filtered
     }
 
-    public override func setData(data: ArrayList<UInt32>): Unit {
+    public override func setData(data: ?ArrayList<UInt32>): Unit {
         reset()
-        if (!data.isEmpty()) {
-            for (value in data) {
-                addToWhiteList(value)
+        if(let Some(v) <- data) {
+            if (!v.isEmpty()) {
+                for (value in v) {
+                    addToWhiteList(value)
+                }
             }
         }
     }
@@ -245,11 +248,13 @@ public abstract class UserFilter<T> <: BaseDanmakuFilter<ArrayList<T>> where T <
     public open override func filter(danmaku: ?BaseDanmaku, index: Int64, totalsizeInScreen: Int64, timer: DanmakuTimer,
         fromCachingTask: Bool, config: DanmakuContext): Bool
 
-    public override func setData(data: ArrayList<T>): Unit {
+    public override func setData(data: ?ArrayList<T>): Unit {
         reset()
-        if (!data.isEmpty()) {
-            for (value in data) {
-                addToBlackList(value)
+        if (let Some(v) <- data) {
+            if (!v.isEmpty()) {
+                for (value in v) {
+                    addToBlackList(value)
+                }
             }
         }
     }
@@ -308,8 +313,10 @@ public class GuestFilter <: BaseDanmakuFilter<Bool> {
         return false
     }
 
-    public override func setData(data: Bool): Unit {
-        mBlock = data
+    public override func setData(data: ?Bool): Unit {
+        if (let Some(v) <- data) {
+            mBlock = v
+        }
     }
 
     public override func reset(): Unit {
@@ -318,9 +325,9 @@ public class GuestFilter <: BaseDanmakuFilter<Bool> {
 }
 
 public class DuplicateMergingFilter <: BaseDanmakuFilter<Unit> {
-    protected let blockedDanmakus: IDanmakus = Danmakus(DanmakusArgs(sortType: ST_BY_LIST))
+    protected let blockedDanmakus: IDanmakus = Danmakus(ST_BY_LIST)
     protected let currentDanmakus: HashMap<String, BaseDanmaku> = HashMap<String, BaseDanmaku>()
-    private let passedDanmakus: IDanmakus = Danmakus(DanmakusArgs(sortType: ST_BY_LIST))
+    private let passedDanmakus: IDanmakus = Danmakus(ST_BY_LIST)
     let mtx = ReentrantMutex()
 
     private func removeTimeoutDanmakus(danmakus: IDanmakus, limitTime: Int64): Unit {
@@ -387,7 +394,7 @@ public class DuplicateMergingFilter <: BaseDanmakuFilter<Unit> {
         return false
     }
 
-    public override func setData(data: Unit): Unit {}
+    public override func setData(data: ?Unit): Unit {}
 
     public override func reset(): Unit {
         synchronized(mtx) {
@@ -418,8 +425,10 @@ public class MaximumLinesFilter <: BaseDanmakuFilter<HashMap<Int64, Int64>> {
         return filtered
     }
 
-    public override func setData(data: HashMap<Int64, Int64>): Unit {
-        mMaximumLinesPairs = data
+    public override func setData(data: ?HashMap<Int64, Int64>): Unit {
+        if (let Some(v) <- data) {
+            mMaximumLinesPairs = v
+        }
     }
 
     public override func reset(): Unit {
@@ -443,8 +452,10 @@ public class OverlappingFilter <: BaseDanmakuFilter<HashMap<Int64, Bool>> {
         return filtered
     }
 
-    public override func setData(data: HashMap<Int64, Bool>): Unit {
-        mEnabledPairs = data
+    public override func setData(data: ?HashMap<Int64, Bool>): Unit {
+        if (let Some(v) <- data) {
+            mEnabledPairs = v
+        }
     }
 
     public override func reset(): Unit {
@@ -475,7 +486,7 @@ public class DanmakuFilters {
     public static let TAG_MAXIMUN_LINES_FILTER: String = "1018_Filter"
     public static let TAG_OVERLAPPING_FILTER: String = "1019_Filter"
     public static let TAG_PRIMARY_CUSTOM_FILTER: String = "2000_Primary_Custom_Filter"
-    public let filterException: Exception = Exception("not support this filter tag")
+    public static let filterException: Exception = Exception("not support this filter tag")
 
     private var filters: HashMap<String, Any> = HashMap<String, Any>()
     private var filtersSecondary: HashMap<String, Any> = HashMap<String, Any>()
@@ -535,35 +546,56 @@ public class DanmakuFilters {
         if (tag == "") {
             return None
         }
+        let size = filters.size
         var filter: ?Any = filters.get(tag)
         if (filter.isNone()) {
             if (TAG_TYPE_DANMAKU_FILTER == tag) {
-                filter = Option.Some(TypeDanmakuFilter())
+                let f = TypeDanmakuFilter()
+                 f.setData(Option.None)
+                filter = f
             } else if (TAG_QUANTITY_DANMAKU_FILTER == tag) {
-                filter = Option.Some(QuantityDanmakuFilter())
+                let f = QuantityDanmakuFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_ELAPSED_TIME_FILTER == tag) {
-                filter = Option.Some(ElapsedTimeFilter())
+                let f = ElapsedTimeFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_TEXT_COLOR_DANMAKU_FILTER == tag) {
-                filter = Option.Some(TextColorFilter())
+                let f = TextColorFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_USER_ID_FILTER == tag) {
-                filter = Option.Some(UserIdFilter())
+                let f = UserIdFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_USER_HASH_FILTER == tag) {
-                filter = Option.Some(UserHashFilter())
+                let f = UserHashFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_GUEST_FILTER == tag) {
-                filter = Option.Some(GuestFilter())
+                let f = GuestFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_DUPLICATE_FILTER == tag) {
-                filter = Option.Some(DuplicateMergingFilter())
+                let f = DuplicateMergingFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_MAXIMUN_LINES_FILTER == tag) {
-                filter = Option.Some(MaximumLinesFilter())
+                let f = MaximumLinesFilter()
+                f.setData(Option.None)
+                filter = f
             } else if (TAG_OVERLAPPING_FILTER == tag) {
-                filter = Option.Some(OverlappingFilter())
+                let f = OverlappingFilter()
+                f.setData(Option.None)
+                filter = f
             }
         }
         if (filter.isNone()) {
             throwFilterException()
             return None
         }
-        (filter() as IDanmakuFilter<Any>)().setData(Option<Any>.None)
+//        (filter() as IDanmakuFilter<Any>)().setData(Option<Any>.None)
         if (primary) {
             filters.put(tag, filter())
             let values = filters.values()
@@ -664,7 +696,7 @@ public class DanmakuFilters {
     }
 }
 
-class Remove <: Consumer<BaseDanmaku, Any> {
+class Remove <: Consumer<BaseDanmaku, Unit> {
     private var limitTime: Int64
     init(limitTime: Int64) {
         super()
@@ -675,15 +707,17 @@ class Remove <: Consumer<BaseDanmaku, Any> {
     public override func accept(item: BaseDanmaku): Int64 {
         try {
             if (SystemClock.uptimeMillis() - startTime > limitTime) {
-                return DefaultConsumer<Progress>.ACTION_BREAK
+                return ACTION_BREAK
             }
             if (item.isTimeOut()) {
-                return DefaultConsumer<Progress>.ACTION_REMOVE
+                return ACTION_REMOVE
             } else {
-                return DefaultConsumer<Progress>.ACTION_BREAK
+                return ACTION_BREAK
             }
         } catch (e: Exception) {
-            return DefaultConsumer<Progress>.ACTION_BREAK
+            return ACTION_BREAK
         }
     }
 }
+
+

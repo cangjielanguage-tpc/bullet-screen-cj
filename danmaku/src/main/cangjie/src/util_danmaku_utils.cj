@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -72,19 +72,7 @@ public class DanmakuUtils {
         return false
     }
 
-    public static func compare(o1: ?BaseDanmaku, o2: ?BaseDanmaku): Ordering {
-        var obj1: BaseDanmaku
-        var obj2: BaseDanmaku
-        if (let Some(v) <- o1) {
-            obj1 = v
-        } else {
-            return Ordering.LT
-        }
-        if (let Some(v) <- o2) {
-            obj2 = v
-        } else {
-            return Ordering.GT
-        }
+    public static func compare(obj1: BaseDanmaku, obj2: BaseDanmaku): Ordering {
         if (refEq(obj1, obj2)) {
             return Ordering.EQ
         }

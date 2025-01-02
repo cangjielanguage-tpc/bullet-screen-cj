@@ -15,7 +15,7 @@ public abstract class Renderer <: IRenderer {
 
     public func setVerifierEnabled(enabled: Bool): Unit
 
-    public func setOnDanmakuShownListener(onDanmakuShownListener: OnDanmakuShownListener): Unit
+    public func setOnDanmakuShownListener(onDanmakuShown: (BaseDanmaku) -> Unit): Unit
 
     public func removeOnDanmakuShownListener(): Unit
 

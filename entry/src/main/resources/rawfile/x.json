@@ -1,0 +1,35 @@
+{
+  "i": {
+    "chatserver": "chat.bilibili.com",
+    "chatid": "8729348",
+    "mission": "0",
+    "maxlimit": "1000",
+    "source": "k-v",
+    "d": [
+
+      {
+        "DanmakuType": 1,
+        "alphaDuration": 0,
+        "beginAlpha": 0,
+        "beginX": 0,
+        "beginY": 0,
+        "duration": 0,
+        "endAlpha": 0,
+        "endX": 0,
+        "endY": 0,
+        "index": 215,
+        "isQuadraticEaseOut": false,
+        "rotationY": 0,
+        "rotationZ": 0,
+        "text": "哇",
+        "textColor": -1,
+        "textShadowColor": -16777216,
+        "textSize": 25,
+        "time": 125306,
+        "timeOffset": 0,
+        "translationDuration": 0,
+        "translationStartDelay": 0
+      }
+    ]
+  }
+}

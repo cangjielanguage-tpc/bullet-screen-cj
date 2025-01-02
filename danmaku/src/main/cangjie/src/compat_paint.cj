@@ -1,11 +1,11 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
 
 public class DanmakuPaint {
-    var mContext: ?CanvasRenderingContext2D = None
+    var mContext: ?DanmakuCanvas2D
     var mColor: UInt32 = 0
     var mTextSize: Float64 = 15.0
     var mAlpha: Int64 = 255
@@ -17,7 +17,7 @@ public class DanmakuPaint {
     var mShadowColor: UInt32 = 0xFFFFFF
     var mBold: Bool = false
 
-    public init(mContext: ?CanvasRenderingContext2D, paint!: ?DanmakuPaint = None) {
+    public init(mContext: ?DanmakuCanvas2D, paint!: ?DanmakuPaint = None) {
         this.mContext = mContext
         if (let Some(v) <- paint) {
             set(v)
@@ -25,9 +25,7 @@ public class DanmakuPaint {
     }
 
     public func set(paint: DanmakuPaint): Unit {
-        if (paint.mContext.isSome()) {
-            mContext = paint.getContext()
-        }
+        mContext = paint.getContext()
         mColor = paint.getColor()
         mTextSize = paint.getTextSize()
         mAlpha = paint.getAlpha()
@@ -40,11 +38,11 @@ public class DanmakuPaint {
         mBold = paint.getFakeBoldText()
     }
 
-    public func setContext(mContext: ?CanvasRenderingContext2D): Unit {
+    public func setContext(mContext: DanmakuCanvas2D): Unit {
         this.mContext = mContext
     }
 
-    public func getContext(): ?CanvasRenderingContext2D {
+    public func getContext(): ?DanmakuCanvas2D {
         return mContext
     }
 
