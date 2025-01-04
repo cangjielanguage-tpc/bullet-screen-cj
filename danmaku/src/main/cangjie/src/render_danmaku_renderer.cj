@@ -1,0 +1,177 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
+ */
+
+package danmaku
+
+var self: DanmakuRenderer = DanmakuRenderer(DanmakuContext.create())
+
+class verifier <: Verifier {
+    public override func skipLayout(danmaku: BaseDanmaku, fixedTop: Float64, lines: Int64, willHit: Bool): Bool {
+        if (danmaku.priority == 0 && self.mContext.mDanmakuFilters.filterSecondary(danmaku, lines, 0, self.mStartTimer,
+            willHit, self.mContext)) {
+            danmaku.setVisibility(false)
+            return true
+        }
+        return false
+    }
+}
+
+public class DanmakuRenderer <: Renderer {
+    var mStartTimer: DanmakuTimer = DanmakuTimer(Option<Int64>.None)
+    var mContext: DanmakuContext
+    var mVerifier: ?Verifier = Option<Verifier>.None
+    private var verifier: Verifier = verifier()
+    var mDanmakusRetainer: Option<DanmakusRetainer> = Option<DanmakusRetainer>.None
+    var mOnDanmakuShownListener: ?OnDanmakuShownListener = Option<OnDanmakuShownListener>.None
+    private var mConsumer: InnerConsumer = InnerConsumer()
+
+    public init(config: DanmakuContext) {
+        super()
+        mContext = config
+        self = this
+        mDanmakusRetainer = DanmakusRetainer(config.isAlignBottom())
+    }
+
+    public func clear(): Unit {
+        clearRetainer()
+        mContext.mDanmakuFilters.clear()
+    }
+
+    public func clearRetainer(): Unit {
+        if (let Some(v) <- mDanmakusRetainer) {
+            v.clear()
+        }
+    }
+
+    public func release(): Unit {
+        if (let Some(v) <- mDanmakusRetainer) {
+            v.release()
+        }
+        mContext.mDanmakuFilters.clear()
+    }
+
+    public func setVerifierEnabled(enabled: Bool): Unit {
+        mVerifier = if (enabled) {
+            verifier
+        } else {
+            None
+        }
+    }
+
+    public func draw(disp: IDisplayer, danmakus: IDanmakus, startRenderTime: Int64, renderingState: RenderingState): Unit {
+        mStartTimer = renderingState.timer
+        mConsumer.disp = disp
+        mConsumer.renderingState = renderingState
+        mConsumer.startRenderTime = startRenderTime
+        danmakus.forEachSync(mConsumer)
+    }
+
+    public func setOnDanmakuShownListener(onDanmakuShownListener: OnDanmakuShownListener): Unit {
+        mOnDanmakuShownListener = onDanmakuShownListener
+    }
+
+    public func removeOnDanmakuShownListener(): Unit {
+        mOnDanmakuShownListener = None
+    }
+
+    public func alignBottom(enable: Bool): Unit {
+        if (let Some(v) <- mDanmakusRetainer) {
+            v.setAlignBottom(enable)
+        }
+    }
+}
+
+class InnerConsumer <: Consumer<BaseDanmaku, Any> {
+    private var lastItem: ?BaseDanmaku = Option<BaseDanmaku>.None
+    public var disp: IDisplayer = OhcjDisplayer()
+    public var renderingState: ?RenderingState = Option<RenderingState>.None
+    public var startRenderTime: Int64 = 0
+
+    public override func accept(drawItem: BaseDanmaku): Int64 {
+        lastItem = drawItem
+        if (drawItem.isTimeOut()) {
+            disp.recycle(drawItem)
+            if (let Some(v) <- renderingState) {
+                return if (v.isRunningDanmakus) {
+                    Consumer<BaseDanmaku, Any>.ACTION_REMOVE
+                } else {
+                    Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+                }
+            }
+        }
+        if (let Some(v) <- renderingState) {
+            if (!v.isRunningDanmakus && drawItem.isOffset()) {
+                return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+            }
+        }
+        if (let Some(v) <- renderingState) {
+            if (!drawItem.hasPassedFilter()) { //还没执行过过滤逻辑
+                self.mContext.mDanmakuFilters.filter(drawItem, v.indexInScreen, v.totalSizeInScreen, v.timer, false,
+                    self.mContext)
+            }
+        }
+        if (drawItem.getActualTime() < startRenderTime
+            || (drawItem.priority == 0 && drawItem.isFiltered())) { // isFiltered 就表示已经被过滤掉了 0表示低优先级 大于0不会被过滤
+            return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+        }
+
+        if (drawItem.isLate()) {
+            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
+        }
+
+        if (drawItem.getType() == BaseDanmaku.TYPE_SCROLL_RL) {
+            // 同屏弹幕密度只对滚动弹幕有效
+            if (let Some(v) <- renderingState) {
+                v.indexInScreen++
+            }
+        }
+
+        // measure
+        if (!drawItem.isMeasured()) {
+            drawItem.measure(disp, false)
+        }
+
+        // notify prepare drawing
+        if (!drawItem.isPrepared()) {
+            drawItem.prepare(disp, false)
+        }
+
+        // layout
+        if (let Some(v) <- self.mDanmakusRetainer) {
+            v.fix(drawItem, disp, self.mVerifier)
+        }
+
+        // draw
+        if (drawItem.isShown()) {
+            if (drawItem.lines.isEmpty() && drawItem.getBottom() > disp.getHeight()) {
+                return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE // skip bottom outside danmaku
+            }
+            let renderingType: Int64 = drawItem.draw(disp)
+            if (let Some(v) <- renderingState) {
+                if (renderingType == CACHE_RENDERING) {
+                    v.cacheHitCount++
+                } else if (renderingType == TEXT_RENDERING) {
+                    v.cacheMissCount++
+                }
+                v.addCount(drawItem.getType(), 1)
+                v.addTotalCount(1)
+                v.appendToRunningDanmakus(drawItem)
+            }
+            if (let Some(v) <- self.mOnDanmakuShownListener) {
+                if (drawItem.firstShownFlag != self.mContext.mGlobalFlagValues.FIRST_SHOWN_RESET_FLAG) {
+                    drawItem.firstShownFlag = self.mContext.mGlobalFlagValues.FIRST_SHOWN_RESET_FLAG
+                    v.onDanmakuShown(drawItem)
+                }
+            }
+        }
+        return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+    }
+
+    public override func after(): Unit {
+        if (let Some(v) <- renderingState) {
+            v.lastDanmaku = lastItem
+            super.after()
+        }
+    }
+}

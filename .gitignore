@@ -17,3 +17,5 @@
 /danmaku/src/main/cangjie/cjpm.lock
 /oh-package-lock.json5
 /entry/src/main/cangjie/cjpm.lock
+.devbrain
+.vscode

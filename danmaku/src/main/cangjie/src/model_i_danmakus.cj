@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -59,15 +59,13 @@ public abstract class Consumer<Progress, Result> {
      * @see #ACTION_BREAK
      * @see #ACTION_REMOVE
      */
-    public func accept(t: Progress): Int64
+    public open func accept(t: Progress): Int64
 
-    public func before(): Unit {
-    }
+    public open func before(): Unit {}
 
-    public func after(): Unit {
-    }
+    public open func after(): Unit {}
 
-    public func result(): ?Result {
+    public open func result(): ?Result {
         return None
     }
 }
