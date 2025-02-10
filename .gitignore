@@ -17,5 +17,12 @@
 /danmaku/src/main/cangjie/cjpm.lock
 /oh-package-lock.json5
 /entry/src/main/cangjie/cjpm.lock
+/danmaku/src/main/cangjie/.cache/
+/danmaku/src/main/cangjie/.vscode/
 .devbrain
 .vscode
+/danmaku/BuildProfile.ets
+/entry/oh-package-lock.json5
+/output.log
+/.bitfun/
+/.cache/

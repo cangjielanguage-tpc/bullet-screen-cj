@@ -38,16 +38,18 @@ public interface IDanmakus {
 
     func getCollection(): SortedSet<BaseDanmaku>
 
-    func forEachSync(consumer: Consumer<BaseDanmaku, Any>): Unit
+    func forEachSync(consumer: Consumer<BaseDanmaku, Unit>): Unit
+    func forEachSync(consumer: Consumer<BaseDanmaku, RetainerState>): Unit
 
-    func forEach(consumer: Consumer<BaseDanmaku, Any>): Unit
+    func forEach(consumer: Consumer<BaseDanmaku, Unit>): Unit
+    func forEach(consumer: Consumer<BaseDanmaku, RetainerState>): Unit
 }
 
+let ACTION_CONTINUE: Int64 = 0
+let ACTION_BREAK: Int64 = 1
+let ACTION_REMOVE: Int64 = 2
+let ACTION_REMOVE_AND_BREAK: Int64 = 3
 public abstract class Consumer<Progress, Result> {
-    public static let ACTION_CONTINUE: Int64 = 0
-    public static let ACTION_BREAK: Int64 = 1
-    public static let ACTION_REMOVE: Int64 = 2
-    public static let ACTION_REMOVE_AND_BREAK: Int64 = 3
 
     /**
      * Performs this operation on the given argument.
@@ -59,7 +61,7 @@ public abstract class Consumer<Progress, Result> {
      * @see #ACTION_BREAK
      * @see #ACTION_REMOVE
      */
-    public open func accept(t: Progress): Int64
+    public open func accept(item: Progress): Int64
 
     public open func before(): Unit {}
 
@@ -70,7 +72,16 @@ public abstract class Consumer<Progress, Result> {
     }
 }
 
-public abstract class DefaultConsumer<Progress> <: Consumer<Progress, Unit> {}
+public open class DefaultConsumer<Progress> <: Consumer<Progress, Unit> {
+    var fn: (Progress) -> Int64
+    init(f: (Progress) -> Int64) {
+        this.fn = f
+    }
+
+    public open func accept(item: Progress): Int64 {
+        return fn(item)
+    }
+}
 
 public open class BaseComparator {
     protected var mDuplicateMergingEnable: Bool = true

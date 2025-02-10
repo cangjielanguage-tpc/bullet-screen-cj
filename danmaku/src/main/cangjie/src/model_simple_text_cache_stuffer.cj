@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -20,7 +20,17 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
     public open override func measure(danmaku: BaseDanmaku, paint: DanmakuPaint, fromWorkerThread: Bool): Unit {
         var w: Float64 = 0.0
         var textHeight: Float64 = 0.0
-        if (danmaku.lines.isEmpty()) {
+        if (let Some(v) <- danmaku.lines) {
+            textHeight = getCacheHeight(danmaku, paint)
+            for (tempStr in v) {
+                if (tempStr.size > 0) {
+                    let tr: Float64 = measureTextWidth(tempStr, paint)
+                    w = max(tr, w)
+                }
+            }
+            danmaku.paintWidth = w
+            danmaku.paintHeight = Float64(v.size) * textHeight
+        } else {
             if (danmaku.text == "") {
                 w = 0.0
             } else {
@@ -29,41 +39,32 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
             }
             danmaku.paintWidth = w
             danmaku.paintHeight = textHeight
-        } else {
-            textHeight = getCacheHeight(danmaku, paint)
-            for (tempStr in danmaku.lines) {
-                if (tempStr.size > 0) {
-                    let tr: Float64 = measureTextWidth(tempStr, paint)
-                    w = max(tr, w)
-                }
-            }
-            danmaku.paintWidth = w
-            danmaku.paintHeight = Float64(danmaku.lines.size) * textHeight
+
         }
     }
 
-    protected open func drawStroke(danmaku: BaseDanmaku, lineText: String, canvas: CanvasRenderingContext2D,
+    protected open func drawStroke(danmaku: BaseDanmaku, lineText: String, canvas: DanmakuCanvas2D,
         left: Float64, top: Float64, paint: DanmakuPaint): Unit {
         if (lineText != "") {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(lineText, left, top)
+            canvas.context.fillText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(danmaku.text, left, top)
+            canvas.context.fillText(danmaku.text, left, top)// debug TODO
         }
     }
 
-    protected open func drawText(danmaku: BaseDanmaku, lineText: String, canvas: CanvasRenderingContext2D,
+    protected open func drawText(danmaku: BaseDanmaku, lineText: String, canvas: DanmakuCanvas2D,
         left: Float64, top: Float64, paint: DanmakuPaint, fromWorkerThread: Bool, displayerConfig: DisplayerConfig): Unit {
         if (fromWorkerThread && danmaku is SpecialDanmaku) {
             paint.setAlpha(255)
         }
         if (lineText != "") {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(lineText, left, top)
+            canvas.context.fillText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(danmaku.text, left, top)
+            canvas.context.fillText(danmaku.text, left, top)
         }
     }
 
@@ -71,10 +72,10 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
         sTextHeightCache.clear()
     }
 
-    protected func drawBackground(danmaku: BaseDanmaku, canvas: CanvasRenderingContext2D, left: Float64, top: Float64): Unit {
+    protected func drawBackground(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64, top: Float64): Unit {
     }
 
-    public override func drawDanmaku(danmaku: BaseDanmaku, canvas: CanvasRenderingContext2D, t: Float64, p: Float64,
+    public override func drawDanmaku(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, t: Float64, p: Float64,
         fromWorkerThread: Bool, displayerConfig: DisplayerConfig): Unit {
         var left = t
         var top = p
@@ -90,8 +91,7 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
         let paint: DanmakuPaint = displayerConfig.getPaint(danmaku, fromWorkerThread)
         drawBackground(danmaku, canvas, _left, _top)
         let ascent = measureTextHeight(paint) * -0.9
-        if (!danmaku.lines.isEmpty()) {
-            let lines: Array<String> = danmaku.lines
+        if (let Some(lines) <- danmaku.lines) {
             if (lines.size == 1) {
                 if (displayerConfig.hasStroke(danmaku)) {
                     displayerConfig.applyPaintConfig(danmaku, paint, true)
@@ -140,23 +140,21 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
             displayerConfig.applyPaintConfig(danmaku, paint, false)
             drawText(danmaku, "", canvas, left, top - ascent, paint, fromWorkerThread, displayerConfig)
         }
-
         // draw underline
         if (danmaku.underlineColor != 0) {
             let linePaint: DanmakuPaint = displayerConfig.getUnderlinePaint(danmaku)
             let bottom: Float64 = _top + danmaku.paintHeight - displayerConfig.UNDERLINE_HEIGHT
             let path: Path2D = Path2D(
-                "M" + "${vp2px(_left.vp)().value}" + ' ' + "${vp2px(bottom.vp)().value}" + ' ' + 'L' +
-                "${vp2px((_left + danmaku.paintWidth).vp)().value}" + ' ' + "${vp2px(bottom.vp)().value}")
+                "M" + "${_left * pxTovp}" + ' ' + "${bottom * pxTovp}" + ' ' + 'L' +
+                "${(_left + danmaku.paintWidth) * pxTovp}" + ' ' + "${bottom * pxTovp}")
             applyPaintToCanvas(linePaint, canvas)
-            canvas.stroke(path)
+            canvas.context.stroke(path)
         }
-
         //draw border
         if (danmaku.borderColor != 0) {
             let borderPaint: DanmakuPaint = displayerConfig.getBorderPaint(danmaku)
             applyPaintToCanvas(borderPaint, canvas)
-            canvas.strokeRect(_left, _top, danmaku.paintWidth, danmaku.paintHeight)
+            canvas.context.strokeRect(_left, _top, danmaku.paintWidth, danmaku.paintHeight)
         }
     }
 }

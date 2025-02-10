@@ -1,13 +1,13 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
 
 public abstract class AbsDisplayer<T, F> <: IDisplayer {
-    public func getExtraData(): ?T
+    public func getExtraData(): T
 
-    public func setExtraData(data: ?T): Unit
+    public func setExtraData(data: T): Unit
 
     public func drawDanmaku(danmaku: BaseDanmaku, canvas: T, left: Float64, top: Float64, fromWorkerThread: Bool): Unit
 

@@ -5,7 +5,7 @@
 package danmaku
 
 public interface ILoader {
-    func getDataSource(): IDataSource<Any>
+    func getDataSource(): IDataSource
 
     /**
      * @param uri 弹幕文件地址(http:// file://)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -215,7 +215,6 @@ public class SpecialDanmaku <: BaseDanmaku {
         currStateValues[1] = currY
         currStateValues[2] = currX + paintWidth
         currStateValues[3] = currY + paintHeight
-
         setVisibility(!isOutside())
         return currStateValues
     }

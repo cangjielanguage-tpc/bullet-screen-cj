@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -9,7 +9,7 @@ public open class R2LDanmaku <: BaseDanmaku {
     protected static let CORDON_RENDERING_TIME: Int64 = 40
     protected var x: Float64 = 0.0
     protected var y: Float64 = -1.0
-    protected var mDistance: Int64 = 0
+    protected var mDistance: Float64 = 0.0
     protected var RECT: ?Array<Float64> = None
     protected var mStepX: Float64 = 0.0
     protected var mLastTime: Int64 = 0
@@ -82,7 +82,7 @@ public open class R2LDanmaku <: BaseDanmaku {
 
     public override func measure(displayer: IDisplayer, fromWorkerThread: Bool): Unit {
         super.measure(displayer, fromWorkerThread)
-        mDistance = Int64(displayer.getWidth() + paintWidth)
-        mStepX = Float64(mDistance / duration.value)
+        mDistance = displayer.getWidth() + paintWidth
+        mStepX = mDistance / Float64(duration.value)
     }
 }

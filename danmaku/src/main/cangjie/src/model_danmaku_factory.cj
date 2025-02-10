@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -61,7 +61,7 @@ public class DanmakuFactory {
         return createDanmakuByContext(t, sLastConfig)
     }
 
-    public func createDanmakuByContext(t: Int64, context: ?DanmakuContext): ?BaseDanmaku {
+    public func createDanmakuByContext(t: Int64, context: Option<DanmakuContext>): ?BaseDanmaku {
         if (context.isNone()) {
             return None
         }
@@ -141,7 +141,7 @@ public class DanmakuFactory {
             viewportSizeFactor) {
             sizeChanged = true
             REAL_DANMAKU_DURATION = (DanmakuFactory.COMMON_DANMAKU_DURATION * (Int64(viewportSizeFactor
-                * viewportWidth) / DanmakuFactory.BILI_PLAYER_WIDTH))
+                * viewportWidth) / DanmakuFactory.BILI_PLAYER_WIDTH))  //debug
             REAL_DANMAKU_DURATION = min(DanmakuFactory.MAX_DANMAKU_DURATION_HIGH_DENSITY, REAL_DANMAKU_DURATION)
             REAL_DANMAKU_DURATION = max(DanmakuFactory.MIN_DANMAKU_DURATION, REAL_DANMAKU_DURATION)
             CURRENT_DISP_WIDTH = viewportWidth

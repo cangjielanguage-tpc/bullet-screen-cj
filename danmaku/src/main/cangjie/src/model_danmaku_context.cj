@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -64,11 +64,9 @@ public enum DanmakuConfigTag {
     }
 }
 
-public interface ConfigChangedCallback <: Equatable<ConfigChangedCallback> {
-    func onDanmakuConfigChanged(config: DanmakuContext, tag: DanmakuConfigTag, value: Array<Any>): Bool
-}
 
 public class DanmakuContext {
+    public init() {}
     public static func create(): DanmakuContext {
         return DanmakuContext()
     }
@@ -116,7 +114,7 @@ public class DanmakuContext {
     private var mCacheStuffer: ?BaseCacheStuffer = None
     private var mIsMaxLinesLimited: Bool = true
     private var mIsPreventOverlappingEnabled: Bool = true
-    public var mDisplayer: AbsDisplayer<CanvasRenderingContext2D, String> = OhcjDisplayer()
+    public var mDisplayer: AbsDisplayer<DanmakuCanvas2D, String> = OhcjDisplayer()
     public var mGlobalFlagValues: GlobalFlagValues = GlobalFlagValues()
     public var mDanmakuFilters: DanmakuFilters = DanmakuFilters()
     public var mDanmakuFactory: DanmakuFactory = DanmakuFactory.create()
@@ -130,7 +128,7 @@ public class DanmakuContext {
         mBaseComparator = baseComparator
     }
 
-    public func getDisplayer(): AbsDisplayer<CanvasRenderingContext2D, String> {
+    public func getDisplayer():AbsDisplayer<DanmakuCanvas2D, String> {
         return mDisplayer
     }
 
@@ -150,7 +148,7 @@ public class DanmakuContext {
     }
 
     public func setDanmakuTransparency(p: Float64): DanmakuContext {
-        let newTransparency: Int64 = Int64(p) * AlphaValue.MAX
+        let newTransparency: Int64 = Int64(p * Float64(AlphaValue.MAX))
         if (newTransparency != transparency) {
             transparency = newTransparency
             mDisplayer.setTransparency(newTransparency)
@@ -645,18 +643,18 @@ public class DanmakuContext {
     //        return this
     //    }
 
-    public func registerConfigChangedCallback(listener: ?ConfigChangedCallback): Unit {
-        if (listener.isNone() || mCallbackList.isNone()) {
-            mCallbackList = ArrayList<ConfigChangedCallback>()
+    public func registerConfigChangedCallback(listener: ConfigChangedCallback): Unit {
+        var arr: ArrayList<ConfigChangedCallback>
+        if (mCallbackList.isNone()) {
+            arr = ArrayList<ConfigChangedCallback>()
+            mCallbackList = arr
+        } else {
+            arr = mCallbackList.getOrThrow()
         }
-        let realListener = listener()
-        let realMCallbackList = mCallbackList()
-        for (callback in realMCallbackList) {
-            if (realListener == callback) {
-                return
-            }
+        for (i in 0..arr.size where listener == arr[i]) {
+            return
         }
-        mCallbackList().append(realListener)
+        arr.append(listener)
     }
 
     public func unregisterConfigChangedCallback(listener: ?ConfigChangedCallback): Unit {
@@ -665,11 +663,9 @@ public class DanmakuContext {
         }
         let realListener = listener()
         let realMCallbackList = mCallbackList()
-        for (i in 0..realMCallbackList.size) {
-            if (realListener == realMCallbackList[i]) {
-                mCallbackList().remove(i)
-                return
-            }
+        for (i in 0..realMCallbackList.size where realListener == realMCallbackList[i]) {
+            mCallbackList().remove(i)
+            return
         }
     }
 

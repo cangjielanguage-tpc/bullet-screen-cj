@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -37,7 +37,7 @@ public abstract class BaseCacheStuffer <: Equatable<BaseCacheStuffer> {
      */
     public func clearCaches(): Unit
 
-    public func drawDanmaku(danmaku: BaseDanmaku, canvas: CanvasRenderingContext2D, left: Float64, top: Float64,
+    public func drawDanmaku(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64, top: Float64,
         fromWorkerThread: Bool, displayerConfig: DisplayerConfig): Unit
 
     public func clearCache(danmaku: BaseDanmaku): Unit {

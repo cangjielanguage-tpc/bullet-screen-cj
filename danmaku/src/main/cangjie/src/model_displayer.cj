@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 package danmaku
@@ -71,14 +71,14 @@ public class DisplayerConfig {
     public var allMarginTop: Int64 = 0
 
     public init() {
-        PAINT = DanmakuPaint(Option<CanvasRenderingContext2D>.None)
+        PAINT = DanmakuPaint(Option<DanmakuCanvas2D>.None)
         PAINT.setStrokeWidth(STROKE_WIDTH)
-        PAINT_DUPLICATE = DanmakuPaint(Option<CanvasRenderingContext2D>.None, paint: PAINT)
-        ALPHA_PAINT = DanmakuPaint(Option<CanvasRenderingContext2D>.None)
-        UNDERLINE_PAINT = DanmakuPaint(Option<CanvasRenderingContext2D>.None)
+        PAINT_DUPLICATE = DanmakuPaint(Option<DanmakuCanvas2D>.None, paint: PAINT)
+        ALPHA_PAINT = DanmakuPaint(Option<DanmakuCanvas2D>.None)
+        UNDERLINE_PAINT = DanmakuPaint(Option<DanmakuCanvas2D>.None)
         UNDERLINE_PAINT.setStrokeWidth(UNDERLINE_HEIGHT)
         UNDERLINE_PAINT.setStyle(Style.STROKE)
-        BORDER_PAINT = DanmakuPaint(Option<CanvasRenderingContext2D>.None)
+        BORDER_PAINT = DanmakuPaint(Option<DanmakuCanvas2D>.None)
         BORDER_PAINT.setStyle(Style.STROKE)
         BORDER_PAINT.setStrokeWidth(BORDER_WIDTH)
     }
@@ -252,9 +252,9 @@ public class DisplayerConfig {
     }
 }
 
-public class OhcjDisplayer <: AbsDisplayer<CanvasRenderingContext2D, String> {
+public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
     private var mDisplayConfig: DisplayerConfig = DisplayerConfig()
-    private var sStuffer: ?BaseCacheStuffer = None
+    private var sStuffer: ?BaseCacheStuffer = SimpleTextCacheStuffer()
 
     public init() {
         super()
@@ -314,26 +314,24 @@ public class OhcjDisplayer <: AbsDisplayer<CanvasRenderingContext2D, String> {
         return mDisplayConfig.allMarginTop
     }
 
-    public var canvas: ?CanvasRenderingContext2D = None
+    public var canvas: ?DanmakuCanvas2D = None
     private var width: Float64 = 0.0
     private var height: Float64 = 0.0
     private var locationZ: Float64 = 0.0
-    private var density: Float64 = 1.0
-    private var densityDpi: Int64 = 160
-    private var scaledDensity: Float64 = 1.0
+    private var density: Float64 = 1.0 * pxTovp
+    private var densityDpi: Int64 = Int64(pxTovp * 160.0)
+    private var scaledDensity: Float64 = 1.0 * pxTovp
     private var mSlopPixel: Int64 = 0
 
-    private func update(c: ?CanvasRenderingContext2D): Unit {
+    private func update(c: DanmakuCanvas2D): Unit {
         canvas = c
-        if (let Some(v) <- c) {
-            //      width = v.width TODO..
-            //      height = v.height TODO..
-            mDisplayConfig.PAINT.setContext(c)
-            mDisplayConfig.PAINT_DUPLICATE.setContext(c)
-            mDisplayConfig.BORDER_PAINT.setContext(c)
-            mDisplayConfig.ALPHA_PAINT.setContext(c)
-            mDisplayConfig.UNDERLINE_PAINT.setContext(c)
-        }
+        width = c.width 
+        height = c.height 
+        mDisplayConfig.PAINT.setContext(c)
+        mDisplayConfig.PAINT_DUPLICATE.setContext(c)
+        mDisplayConfig.BORDER_PAINT.setContext(c)
+        mDisplayConfig.ALPHA_PAINT.setContext(c)
+        mDisplayConfig.UNDERLINE_PAINT.setContext(c)
     }
 
     public override func getWidth(): Float64 {
@@ -411,15 +409,15 @@ public class OhcjDisplayer <: AbsDisplayer<CanvasRenderingContext2D, String> {
         }
     }
 
-    private func restoreCanvas(canvas: CanvasRenderingContext2D): Unit {
-        canvas.restore()
+    private func restoreCanvas(canvas: DanmakuCanvas2D): Unit {
+        canvas.context.restore()
     }
 
-    private func saveCanvas(danmaku: BaseDanmaku, canvas: CanvasRenderingContext2D, left: Float64, top: Float64): Int64 {
+    private func saveCanvas(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64, top: Float64): Int64 {
         return 0
     }
 
-    public override func drawDanmaku(danmaku: BaseDanmaku, canvas: CanvasRenderingContext2D, left: Float64,
+    public override func drawDanmaku(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64,
         top: Float64, fromWorkerThread: Bool): Unit {
         if (let Some(v) <- sStuffer) {
             v.drawDanmaku(danmaku, canvas, left, top, fromWorkerThread, mDisplayConfig)
@@ -498,40 +496,41 @@ public class OhcjDisplayer <: AbsDisplayer<CanvasRenderingContext2D, String> {
     }
 
     public override func setDanmakuStyle(style: Int64, values: Array<Float64>): Unit {
-        match (style) {
-            case DANMAKU_STYLE_NONE =>
+        match {
+            case style == DANMAKU_STYLE_NONE =>
                 mDisplayConfig.CONFIG_HAS_SHADOW = false
                 mDisplayConfig.CONFIG_HAS_STROKE = false
                 mDisplayConfig.CONFIG_HAS_PROJECTION = false
-            case DANMAKU_STYLE_SHADOW =>
+            case style == DANMAKU_STYLE_SHADOW =>
                 mDisplayConfig.CONFIG_HAS_SHADOW = true
                 mDisplayConfig.CONFIG_HAS_STROKE = false
                 mDisplayConfig.CONFIG_HAS_PROJECTION = false
                 setShadowRadius(values[0])
-            case DANMAKU_STYLE_DEFAULT =>
+            case style == DANMAKU_STYLE_DEFAULT =>
                 mDisplayConfig.CONFIG_HAS_SHADOW = false
                 mDisplayConfig.CONFIG_HAS_STROKE = true
                 mDisplayConfig.CONFIG_HAS_PROJECTION = false
                 setPaintStorkeWidth(values[0])
-            case DANMAKU_STYLE_STROKEN =>
+            case style == DANMAKU_STYLE_STROKEN =>
                 mDisplayConfig.CONFIG_HAS_SHADOW = false
                 mDisplayConfig.CONFIG_HAS_STROKE = true
                 mDisplayConfig.CONFIG_HAS_PROJECTION = false
                 setPaintStorkeWidth(values[0])
-            case DANMAKU_STYLE_PROJECTION =>
+            case style == DANMAKU_STYLE_PROJECTION =>
                 mDisplayConfig.CONFIG_HAS_SHADOW = false
                 mDisplayConfig.CONFIG_HAS_STROKE = false
                 mDisplayConfig.CONFIG_HAS_PROJECTION = true
                 setProjectionConfig(values[0], values[1], Int64(values[2]))
+            case _ => ()
         }
     }
 
-    public override func setExtraData(data: ?CanvasRenderingContext2D): Unit {
+    public override func setExtraData(data: DanmakuCanvas2D): Unit {
         update(data)
     }
 
-    public override func getExtraData(): ?CanvasRenderingContext2D {
-        return canvas
+    public override func getExtraData(): DanmakuCanvas2D {
+        return canvas()
     }
 
     public override func getStrokeWidth(): Float64 {

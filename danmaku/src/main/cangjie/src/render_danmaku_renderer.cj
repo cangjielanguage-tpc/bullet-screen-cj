@@ -4,11 +4,14 @@
 
 package danmaku
 
-var self: DanmakuRenderer = DanmakuRenderer(DanmakuContext.create())
-
-class verifier <: Verifier {
+class InnerVerifier <: Verifier {
+    static let NULL_CLASS = unsafe {zeroValue<InnerVerifier>()}
+    private let self: DanmakuRenderer
+    init(self: DanmakuRenderer) {
+        this.self = self
+    }
     public override func skipLayout(danmaku: BaseDanmaku, fixedTop: Float64, lines: Int64, willHit: Bool): Bool {
-        if (danmaku.priority == 0 && self.mContext.mDanmakuFilters.filterSecondary(danmaku, lines, 0, self.mStartTimer,
+        if (danmaku.priority == 0 && self.mContext.mDanmakuFilters.filterSecondary(danmaku, lines, 0, self.mStartTimer.getOrThrow(),
             willHit, self.mContext)) {
             danmaku.setVisibility(false)
             return true
@@ -18,18 +21,21 @@ class verifier <: Verifier {
 }
 
 public class DanmakuRenderer <: Renderer {
-    var mStartTimer: DanmakuTimer = DanmakuTimer(Option<Int64>.None)
+    var mStartTimer: ?DanmakuTimer = None
     var mContext: DanmakuContext
     var mVerifier: ?Verifier = Option<Verifier>.None
-    private var verifier: Verifier = verifier()
+    private var verifier: Verifier
     var mDanmakusRetainer: Option<DanmakusRetainer> = Option<DanmakusRetainer>.None
-    var mOnDanmakuShownListener: ?OnDanmakuShownListener = Option<OnDanmakuShownListener>.None
-    private var mConsumer: InnerConsumer = InnerConsumer()
+    var mOnDanmakuShownListener: Option<(BaseDanmaku) -> Unit> = None
+    private var mConsumer: InnerConsumer
 
     public init(config: DanmakuContext) {
         super()
         mContext = config
-        self = this
+        this.verifier = InnerVerifier.NULL_CLASS
+        this.mConsumer = InnerConsumer.NULL_CLASS
+        this.verifier = InnerVerifier(this)
+        this.mConsumer = InnerConsumer(this)
         mDanmakusRetainer = DanmakusRetainer(config.isAlignBottom())
     }
 
@@ -61,14 +67,14 @@ public class DanmakuRenderer <: Renderer {
 
     public func draw(disp: IDisplayer, danmakus: IDanmakus, startRenderTime: Int64, renderingState: RenderingState): Unit {
         mStartTimer = renderingState.timer
-        mConsumer.disp = disp
-        mConsumer.renderingState = renderingState
-        mConsumer.startRenderTime = startRenderTime
+       mConsumer.disp = disp
+       mConsumer.renderingState = renderingState
+       mConsumer.startRenderTime = startRenderTime
         danmakus.forEachSync(mConsumer)
     }
 
-    public func setOnDanmakuShownListener(onDanmakuShownListener: OnDanmakuShownListener): Unit {
-        mOnDanmakuShownListener = onDanmakuShownListener
+    public func setOnDanmakuShownListener(onDanmakuShown: (BaseDanmaku) -> Unit): Unit {
+        mOnDanmakuShownListener = onDanmakuShown
     }
 
     public func removeOnDanmakuShownListener(): Unit {
@@ -82,11 +88,17 @@ public class DanmakuRenderer <: Renderer {
     }
 }
 
-class InnerConsumer <: Consumer<BaseDanmaku, Any> {
+class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
+    static let NULL_CLASS = unsafe {zeroValue<InnerConsumer>()}
     private var lastItem: ?BaseDanmaku = Option<BaseDanmaku>.None
-    public var disp: IDisplayer = OhcjDisplayer()
+    public var disp: IDisplayer = unsafe {zeroValue<IDisplayer>()}
     public var renderingState: ?RenderingState = Option<RenderingState>.None
     public var startRenderTime: Int64 = 0
+    private let self: DanmakuRenderer
+
+    init(self: DanmakuRenderer) {
+        this.self = self
+    }
 
     public override func accept(drawItem: BaseDanmaku): Int64 {
         lastItem = drawItem
@@ -94,15 +106,15 @@ class InnerConsumer <: Consumer<BaseDanmaku, Any> {
             disp.recycle(drawItem)
             if (let Some(v) <- renderingState) {
                 return if (v.isRunningDanmakus) {
-                    Consumer<BaseDanmaku, Any>.ACTION_REMOVE
+                    ACTION_REMOVE
                 } else {
-                    Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+                    ACTION_CONTINUE
                 }
             }
         }
         if (let Some(v) <- renderingState) {
             if (!v.isRunningDanmakus && drawItem.isOffset()) {
-                return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+                return ACTION_CONTINUE
             }
         }
         if (let Some(v) <- renderingState) {
@@ -113,12 +125,12 @@ class InnerConsumer <: Consumer<BaseDanmaku, Any> {
         }
         if (drawItem.getActualTime() < startRenderTime
             || (drawItem.priority == 0 && drawItem.isFiltered())) { // isFiltered 就表示已经被过滤掉了 0表示低优先级 大于0不会被过滤
-            return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+            return ACTION_CONTINUE
         }
 
-        if (drawItem.isLate()) {
-            return Consumer<BaseDanmaku, Any>.ACTION_BREAK
-        }
+//        if (drawItem.isLate()) {
+//            return ACTION_BREAK
+//        }
 
         if (drawItem.getType() == BaseDanmaku.TYPE_SCROLL_RL) {
             // 同屏弹幕密度只对滚动弹幕有效
@@ -144,8 +156,8 @@ class InnerConsumer <: Consumer<BaseDanmaku, Any> {
 
         // draw
         if (drawItem.isShown()) {
-            if (drawItem.lines.isEmpty() && drawItem.getBottom() > disp.getHeight()) {
-                return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE // skip bottom outside danmaku
+            if (drawItem.lines.isNone() && drawItem.getBottom() > disp.getHeight()) {
+                return ACTION_CONTINUE // skip bottom outside danmaku
             }
             let renderingType: Int64 = drawItem.draw(disp)
             if (let Some(v) <- renderingState) {
@@ -161,11 +173,11 @@ class InnerConsumer <: Consumer<BaseDanmaku, Any> {
             if (let Some(v) <- self.mOnDanmakuShownListener) {
                 if (drawItem.firstShownFlag != self.mContext.mGlobalFlagValues.FIRST_SHOWN_RESET_FLAG) {
                     drawItem.firstShownFlag = self.mContext.mGlobalFlagValues.FIRST_SHOWN_RESET_FLAG
-                    v.onDanmakuShown(drawItem)
+                    v(drawItem)
                 }
             }
         }
-        return Consumer<BaseDanmaku, Any>.ACTION_CONTINUE
+        return ACTION_CONTINUE
     }
 
     public override func after(): Unit {
