@@ -5,6 +5,7 @@
 package danmaku
 
 public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
+    public var index: Int64 = 0
     public override func measure(danmaku: BaseDanmaku, paint: DanmakuPaint, fromWorkerThread: Bool): Unit {
         if (danmaku.text != "" && danmaku.text.startsWith("<img")) {
             let text: String = danmaku.text
@@ -92,11 +93,10 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
         let src: String = imgInfo.src
         let width: Float64 = imgInfo.width
         let height: Float64 = imgInfo.height
+        let isAnimation: Bool = danmaku.getIsAnimation()
         let requestRemeasure: Bool = 0 != (danmaku.requestFlags & Int64(BaseDanmaku.FLAG_REQUEST_REMEASURE))
         let requestInvalidate: Bool = 0 != (danmaku.requestFlags & Int64(BaseDanmaku.FLAG_REQUEST_INVALIDATE))
         if (requestInvalidate) {
-//            let currentFlags: Int64 = danmaku.requestFlags
-//            let invertedFlag: Int64 = Int64(reverse(BaseDanmaku.FLAG_REQUEST_INVALIDATE))
             danmaku.requestFlags &= !BaseDanmaku.FLAG_REQUEST_INVALIDATE
         }
         var needRestore: Bool = false
@@ -106,19 +106,31 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
             canvas.context.translate(left, (top + ascent))
             needRestore = true
         }
-        let imageBitmap: ImageBitmap = ImageBitmap(src)
-        canvas.context.drawImage(imageBitmap, 0.0, 0.0, width, height)
-        canvas.context.fillStyle(0x2233B1) // #8A2233B1
-        var rectWidth: Float64 = danmaku.paintWidth - width - 2.0 * danmaku.padding
-        if (danmaku.borderColor != 0) {
-            rectWidth -= 2.0 * displayerConfig.BORDER_WIDTH
+        if (isAnimation) {
+            let pixelMapList: ArrayList<PixelMap> = danmaku.getPixelMapList()
+            index = index % pixelMapList.size
+            canvas.context.drawImage(pixelMapList[index], 0.0, 0.0, width, height)
+            index++
+            applyPaintToCanvas(paint, canvas)
+            if (needRestore) {
+                canvas.context.translate(0.0, -ascent)
+            }
+            canvas.context.fillText(danmaku.text, width, 0.0)
+        } else if (!isAnimation) {
+            let imageBitmap: ImageBitmap = ImageBitmap(src)
+            canvas.context.drawImage(imageBitmap, 0.0, 0.0, width, height)
+            canvas.context.fillStyle(0x8A2233B1) // #8A2233B1
+            var rectWidth: Float64 = danmaku.paintWidth - width - 2.0 * danmaku.padding
+            if (danmaku.borderColor != 0) {
+                rectWidth -= 2.0 * displayerConfig.BORDER_WIDTH
+            }
+            canvas.context.fillRect(width, 0.0, rectWidth, height)
+            applyPaintToCanvas(paint, canvas)
+            if (needRestore) {
+                canvas.context.translate(0.0, -ascent)
+            }
+            canvas.context.fillText(danmaku.text, width, 0.0)
         }
-        canvas.context.fillRect(width, 0.0, rectWidth, height)
-        applyPaintToCanvas(paint, canvas)
-        if (needRestore) {
-            canvas.context.translate(0.0, -ascent)
-        }
-        canvas.context.fillText(danmaku.text, width, 0.0)
         if (needRestore) {
             canvas.context.restore()
         }

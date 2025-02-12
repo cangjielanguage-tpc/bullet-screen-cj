@@ -10,6 +10,7 @@ internal import ohos.component.*
 internal import ohos.measure.Measure
 internal import ohos.base.Color
 internal import ohos.system_date_time.*
+internal import ohos.image.PixelMap
 internal import std.collection.*
 internal import std.random.Random
 internal import std.time.Duration
