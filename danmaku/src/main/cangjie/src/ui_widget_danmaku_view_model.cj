@@ -13,6 +13,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     func setDanmakuView(d: DanmakuView) {
         //        this.mon.lock()
         this.delegate = d
+        this.delegate?.prepareInner()
         for (call in userArgs) {
             call(d)
         }

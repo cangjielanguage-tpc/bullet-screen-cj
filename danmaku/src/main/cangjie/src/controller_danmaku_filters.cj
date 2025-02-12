@@ -592,10 +592,8 @@ public class DanmakuFilters {
             }
         }
         if (filter.isNone()) {
-            throwFilterException()
             return None
         }
-//        (filter() as IDanmakuFilter<Any>)().setData(Option<Any>.None)
         if (primary) {
             filters.put(tag, filter())
             let values = filters.values()
@@ -688,12 +686,6 @@ public class DanmakuFilters {
         mFilterArraySecondary = ArrayList<Any>()
     }
 
-    private func throwFilterException(): Unit {
-        try {
-            throw filterException
-        } catch (e: Exception) {
-        }
-    }
 }
 
 class Remove <: Consumer<BaseDanmaku, Unit> {

@@ -28,7 +28,7 @@ public class DrawHelper {
        DrawHelper.clearCanvasByPoints(canvas, 10.0, Float64(top) - 15.0, measureTextWidth(text, DrawHelper.PAINT_FPS()) + 20.0, canvas.height)
 
        applyPaintToCanvas(DrawHelper.PAINT_FPS(), canvas)
-       canvas.context.fillText(text, 15, top)
+       canvas.fillText(text, 15, top)
     }
 
    public static func clearCanvas(canvas: DanmakuCanvas2D): Unit {
@@ -38,7 +38,7 @@ public class DrawHelper {
    }
 
    public static func fillTransparent(canvas: DanmakuCanvas2D): Unit{
-       canvas.context.clearRect(0.0, 0.0, canvas.width, canvas.height)
+       canvas.clearRect(0.0, 0.0, canvas.width, canvas.height)
    }
 
    public static func clearCanvasByPoints(canvas: DanmakuCanvas2D, left: Float64, top: Float64, right: Float64, bottom: Float64): Unit {
@@ -50,7 +50,7 @@ public class DrawHelper {
        if (rect.width() <= 0.0 || rect.height() <= 0.0) {
            return
        }
-       canvas.context.clearRect(rect.left, rect.top, rect.width(), rect.height())
+       canvas.clearRect(rect.left, rect.top, rect.width(), rect.height())
    }
 }
 

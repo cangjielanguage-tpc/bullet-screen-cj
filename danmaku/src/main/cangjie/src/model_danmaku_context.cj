@@ -66,6 +66,9 @@ public enum DanmakuConfigTag {
 
 
 public class DanmakuContext {
+
+    let bitmaps: HashMap<String, ImageBitmap> = HashMap<String, ImageBitmap>()
+
     public init() {}
     public static func create(): DanmakuContext {
         return DanmakuContext()
@@ -625,6 +628,7 @@ public class DanmakuContext {
      */
     public func setCacheStuffer(cacheStuffer: BaseCacheStuffer, cacheStufferAdapter: Proxy): DanmakuContext {
         mCacheStuffer = cacheStuffer
+        cacheStuffer.bitmaps = this.bitmaps
         if (let Some(v) <- mCacheStuffer) {
             v.setProxy(cacheStufferAdapter)
             mDisplayer.setCacheStuffer(v)

@@ -12,11 +12,12 @@ import ohos.state_macro_manage.Component
 import std.format.*
 import std.time.DateTime
 import std.sync.{Timer, sleep, CatchupStyle}
+import ohos.prompt_action.*
 
 var pxTovp: Float64 = 3.25
 let MAX_RECORD_SIZE: Int64 = 50
 let ONE_SECOND: Int64 = 1000
-let NullDrawHandler = unsafe { zeroValue<DrawHandler>() }
+
 let DefaultDanmakuViewModel = DanmakuViewModel()
 
 @Component
@@ -42,15 +43,20 @@ public class DanmakuView {
     var mbackgroundColor: Color = Color.BLACK
 
     var mCallback: ?DanmakuCallBack = None
-    var handler: DrawHandler = NullDrawHandler
-    var hasHandler: Bool = false
+    var handler_: ?DrawHandler = None
+    prop handler: DrawHandler {
+        get () {
+            return handler_.getOrThrow()
+        }
+    }
+//    var hasHandler: Bool = false
 
     var mEnableDanmakuDrwaingCache: Bool = false
 
     var mOnDanmakuClickListener: ?OnDanmakuClickListener = None
     var mXOff: Float64 = 0.0
     var mYOff: Float64 = 0.0
-    var mTouchHelper: DanmakuTouchHelper = unsafe { zeroValue<DanmakuTouchHelper>() }
+    var mTouchHelper: ?DanmakuTouchHelper = None
     var mShowFps: Bool = false
     var mDanmakuVisible: Bool = true
     var mDrawingThreadType: Int64 = THREAD_TYPE_NORMAL_PRIORITY
@@ -97,7 +103,7 @@ public class DanmakuView {
         let that = this
         let call = {
             =>
-            if (!that.hasHandler) {
+            if (that.handler_.isNone()) {
                 return
             }
             let drawHandler: DrawHandler = that.handler
@@ -125,7 +131,7 @@ public class DanmakuView {
 
     @Builder
     func setSvgCanvas(b: Bool) {
-        Canvas(this.context.context)
+        Canvas(this.context.getContext())
             .onReady({
                 => this.ready = true
             })
@@ -134,6 +140,13 @@ public class DanmakuView {
             .backgroundColor(Color.TRANSPARENT)
             .onAreaChange({
                 old, new => this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
+                PromptAction.showToast(message: "ret = onAreaChange")
+            })
+            .onAppear({=>
+                PromptAction.showToast(message: "ret = onAppear")
+            })
+            .onDisAppear({=>
+                PromptAction.showToast(message: "ret = onDisAppear")
             })
     }
 
@@ -164,41 +177,28 @@ public class DanmakuView {
      * @param item
      */
     func addDanmaku(item: BaseDanmaku): Unit { // from IDanmakuView
-        if (this.hasHandler) {
-            this.handler.addDanmaku(item)
-        }
+        this.handler.addDanmaku(item)
     }
 
     func invalidateDanmaku(item: BaseDanmaku, remeasure: Bool): Unit { // from IDanmakuView
-        if (this.hasHandler) {
             this.handler.invalidateDanmaku(item, remeasure)
-        }
     }
 
     func removeAllDanmakus(isClearDanmakusOnScreen: Bool): Unit { // from IDanmakuView
-        if (this.hasHandler) {
             this.handler.removeAllDanmakus(isClearDanmakusOnScreen)
-        }
     }
 
     func removeAllLiveDanmakus(): Unit { // from IDanmakuView
-        if (this.hasHandler) {
             this.handler.removeAllLiveDanmakus()
-        }
     }
 
     func getCurrentVisibleDanmakus(): ?IDanmakus { // from IDanmakuView
-        if (this.hasHandler) {
-            return this.handler.getCurrentVisibleDanmakus()
-        }
-        return None
+        return this.handler.getCurrentVisibleDanmakus()
     }
 
     func setCallback(callback: DanmakuCallBack): Unit { // from IDanmakuView
         this.mCallback = callback
-        if (this.hasHandler) {
             this.handler.setCallback(callback)
-        }
     }
 
     func release(): Unit { // from IDanmakuView 播放控制
@@ -210,12 +210,10 @@ public class DanmakuView {
     }
 
     func stopDraw(): Unit {
-        if (!this.hasHandler) {
+        if (this.handler_.isNone()) {
             return
         }
         let handler: DrawHandler = this.handler
-        this.handler = NullDrawHandler
-        this.hasHandler = false
         handler.quit()
     }
 
@@ -235,9 +233,8 @@ public class DanmakuView {
     }
 
     func prepareInner(): Unit {
-        if (!this.hasHandler) {
-            this.handler = DrawHandler(getLooper(0), this.model, this.mDanmakuVisible)
-            this.hasHandler = true
+        if (this.handler_.isNone()) {
+            this.handler_ = DrawHandler(getLooper(0), this.model, this.mDanmakuVisible)
         }
     }
 
@@ -250,7 +247,7 @@ public class DanmakuView {
     }
 
     func isPrepared(): Bool { // from IDanmakuView
-        return this.hasHandler && this.handler.isPrepared()
+        return this.handler_.isSome() && this.handler.isPrepared()
     }
 
     func getConfig(): ?DanmakuContext { // from IDanmakuView
@@ -264,19 +261,15 @@ public class DanmakuView {
     func fps(): Float64 {
         let lastTime: Int64 = SystemClock.uptimeMillis()
         this.mDrawTimes.enqueue(lastTime)
-        try {
-            if (let Some(first) <- this.mDrawTimes.head()) {
-                let dtime: Int64 = lastTime - first
-                let frames: Int64 = this.mDrawTimes.size
-                if (frames > MAX_RECORD_SIZE) {
-                    this.mDrawTimes.dequeue()
-                }
-                if (dtime > 0) {
-                    return Float64(this.mDrawTimes.size * ONE_SECOND / dtime)
-                }
+        if (let Some(first) <- this.mDrawTimes.head()) {
+            let dtime: Int64 = lastTime - first
+            let frames: Int64 = this.mDrawTimes.size
+            if (frames > MAX_RECORD_SIZE) {
+                this.mDrawTimes.dequeue()
             }
-        } catch (e: Exception) {
-            ()
+            if (dtime > 0) {
+                return Float64(this.mDrawTimes.size * ONE_SECOND / dtime)
+            }
         }
         return 0.0
     }
@@ -309,17 +302,15 @@ public class DanmakuView {
         if ((!this.mDanmakuVisible) && (!this.mRequestRender)) {
             return 0
         }
-        DrawHelper.clearCanvas(canvas)
+        // TODO 定位安卓和ets调用差异        DrawHelper.clearCanvas(canvas)
         if (this.mClearFlag) {
             DrawHelper.clearCanvas(canvas)
             this.mClearFlag = false
         } else {
-            if (this.hasHandler) {
-                this.handler.draw(canvas)
-                if (this.mShowFps) {
-                    let fps: String = "fps ${this.fps()}, time:${this.getCurrentTime() / 1000}"
-                    DrawHelper.drawFPS(canvas, fps)
-                }
+            this.handler.draw(canvas)
+            if (this.mShowFps) {
+                let fps: String = "fps ${this.fps()}, time:${this.getCurrentTime() / 1000}"
+                DrawHelper.drawFPS(canvas, fps)
             }
         }
         this.mRequestRender = false
@@ -327,13 +318,11 @@ public class DanmakuView {
     }
 
     func onRelayout(): Unit {
-        if (this.hasHandler) {
             this.handler.notifyDispSizeChanged(Float64(this.viewWidth), Float64(this.viewHeight))
-        }
     }
 
     func toggle(): Unit { // from IDanmakuView 播放控制
-        if (!this.hasHandler) {
+        if (this.handler_.isNone()) {
             this.start()
         } else if (this.handler.isStop()) {
             this.resume()
@@ -343,23 +332,21 @@ public class DanmakuView {
     }
 
     func pause(): Unit { // from IDanmakuView 播放控制
-        if (this.hasHandler) {
             this.handler.removeCallbacks(this.mResumeRunnable)
             this.handler.pause()
-        }
     }
 
     func resume(): Unit { // from IDanmakuView 播放控制
-        if (this.hasHandler && this.handler.isPrepared()) {
+        if (this.handler_.isSome() && this.handler.isPrepared()) {
             this.mResumeTryCount = 0
             this.handler.post(this.mResumeRunnable)
-        } else if (!this.hasHandler) {
+        } else if (this.handler_.isNone()) {
             this.restart()
         }
     }
 
     func isPaused(): Bool { // from IDanmakuView
-        if (this.hasHandler) {
+        if (this.handler_.isSome()) {
             return this.handler.isStop()
         }
         return false
@@ -374,21 +361,21 @@ public class DanmakuView {
         this.start(0)
     }
     func start(position: Int64): Unit { // from IDanmakuView 播放控制
-        if (hasHandler) {
+        if (this.handler_.isNone()) {
             this.prepareInner()
         } else {
             this.handler.removeCallbacksAndMessages()
         }
-
         this.handler.sendMessage(Message(what: START, obj: position))
+//        this.handler.obtainMessage(START, position).sendToTarget()
     }
 
     func onTouchEvent(event: TouchEvent): Unit {
-        this.mTouchHelper.onTouchEvent(event)
+        this.mTouchHelper?.onTouchEvent(event)
     }
 
     func seekTo(ms: Int64): Unit { // from IDanmakuView 播放控制
-        if (this.hasHandler) {
+        if (this.handler_.isSome()) {
             this.handler.seekTo(ms)
         }
     }
@@ -410,7 +397,7 @@ public class DanmakuView {
     func showAndResumeDrawTask(position: Int64): Unit { // from IDanmakuView 播放控制
         this.mDanmakuVisible = true
         this.mClearFlag = false
-        if (!this.hasHandler) {
+        if (this.handler_.isNone()) {
             return
         }
         this.handler.showDanmakus(position)
@@ -418,7 +405,7 @@ public class DanmakuView {
 
     func hide(): Unit { // from IDanmakuView 播放控制
         this.mDanmakuVisible = false
-        if (!this.hasHandler) {
+        if (this.handler_.isNone()) {
             return
         }
         this.handler.hideDanmakus(false)
@@ -432,7 +419,7 @@ public class DanmakuView {
      */
     func hideAndPauseDrawTask(): Int64 { // from IDanmakuView 播放控制
         this.mDanmakuVisible = false
-        if (!this.hasHandler) {
+        if (this.handler_.isNone()) {
             return 0
         }
         return this.handler.hideDanmakus(true)
@@ -471,16 +458,11 @@ public class DanmakuView {
      * @return
      */
     func getCurrentTime(): Int64 { // from IDanmakuView
-        if (this.hasHandler) {
             return this.handler.getCurrentTime()
-        }
-        return 0
     }
 
     func clearDanmakusOnScreen(): Unit {
-        if (this.hasHandler) {
             this.handler.clearDanmakusOnScreen()
-        }
     }
 
     //  func setOnDanmakuClickListener(listener: OnDanmakuClickListener, xOff: Int64, yOff: Int64): Unit { // from IDanmakuView Click Listener

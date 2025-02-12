@@ -12,9 +12,11 @@ internal import ohos.base.Color
 internal import ohos.system_date_time.*
 internal import ohos.image.PixelMap
 internal import std.collection.*
+internal import ohos.animator.*
 internal import std.random.Random
 internal import std.time.Duration
 internal import std.time.DateTime
+internal import std.collection.concurrent.ConcurrentHashMap
 internal import std.collection.concurrent.BlockingQueue
 internal import std.collection.concurrent.NonBlockingQueue
 internal import std.convert.*
@@ -55,45 +57,6 @@ extend<T> Option<T> {
         this.getOrThrow()
     }
 }
-
-// Convenient to delete when traversing linked lists
-open class LinkedlistIteratorWithRemove<T> <: Iterator<T> where T <: Comparable<T> & BaseDanmaku {
-    var curr : Option<(T, Unit)>
-    var node : Option<(T, Unit)>
-    let list: TreeMap<T, Unit>
-    public init(list : TreeMap<T, Unit>) {
-        this.list = list
-        this.curr = list.firstEntry()
-        this.node = list.firstEntry()
-    }
-
-    func reset(): Unit {
-        this.curr = list.firstEntry()
-        this.node = list.firstEntry()
-    }
-
-    public func next(): ?T {
-        if (let Some(v) <- node) {
-            let data = v
-            this.curr = v
-            this.node = if (let Some(m) <- this.list.findUpper(v[0])) {
-                Some((m.key, m.value))
-            } else {
-                None
-            }
-            return data[0]
-        } else {
-            None
-        }
-    }
-
-    public func remove(): Unit {
-        if (let Some(v) <- curr) {
-            list.remove(v[0])
-        }
-    }
-}
-
 
 // for test
 func printlnException(arr: Array<StackTraceElement> ): String {

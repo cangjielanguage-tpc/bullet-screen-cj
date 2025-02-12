@@ -380,10 +380,10 @@ class RetainerConsumerBottom <: Consumer<BaseDanmaku, RetainerState> {
 }
 
 class AlignBottomRetainer <: IFTDanmakusRetainer {
-    protected var mConsumerBottom: RetainerConsumerBottom = unsafe {zeroValue<RetainerConsumerBottom>()}
+    protected var mConsumerBottom: ?RetainerConsumerBottom = None
     public init() {
         super(this)
-        mVisibleDanmakus = Danmakus(ST_BY_YPOS_DESC)
+        this.mVisibleDanmakus = Danmakus(ST_BY_YPOS_DESC)
         this.mConsumerBottom = RetainerConsumerBottom(this)
     }
 
@@ -407,12 +407,12 @@ class AlignBottomRetainer <: IFTDanmakusRetainer {
         var firstItem: ?BaseDanmaku = Option<BaseDanmaku>.None
         if (!shown) {
             mCancelFixingFlag = false
-            mConsumerBottom.topPos = topPos
-            mConsumerBottom.disp = disp
-            mConsumerBottom.drawItem = drawItem
-            mVisibleDanmakus.forEachSync(mConsumerBottom)
-            let retainerState: ?RetainerState = mConsumerBottom.result()
-            topPos = mConsumerBottom.topPos
+            mConsumerBottom.getOrThrow().topPos = topPos
+            mConsumerBottom.getOrThrow().disp = disp
+            mConsumerBottom.getOrThrow().drawItem = drawItem
+            mVisibleDanmakus.forEachSync(mConsumerBottom.getOrThrow())
+            let retainerState: ?RetainerState = mConsumerBottom.getOrThrow().result()
+            topPos = mConsumerBottom.getOrThrow().topPos
             if (let Some(v) <- retainerState) {
                 lines = v.lines
                 firstItem = v.firstItem

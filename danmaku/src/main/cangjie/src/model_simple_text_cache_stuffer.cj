@@ -47,10 +47,10 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
         left: Float64, top: Float64, paint: DanmakuPaint): Unit {
         if (lineText != "") {
             applyPaintToCanvas(paint, canvas)
-            canvas.context.fillText(lineText, left, top)
+            canvas.fillText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.context.fillText(danmaku.text, left, top)// debug TODO
+            canvas.fillText(danmaku.text, left, top)// debug TODO
         }
     }
 
@@ -61,10 +61,10 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
         }
         if (lineText != "") {
             applyPaintToCanvas(paint, canvas)
-            canvas.context.fillText(lineText, left, top)
+            canvas.fillText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.context.fillText(danmaku.text, left, top)
+            canvas.fillText(danmaku.text, left, top)
         }
     }
 
@@ -148,13 +148,13 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
                 "M" + "${_left * pxTovp}" + ' ' + "${bottom * pxTovp}" + ' ' + 'L' +
                 "${(_left + danmaku.paintWidth) * pxTovp}" + ' ' + "${bottom * pxTovp}")
             applyPaintToCanvas(linePaint, canvas)
-            canvas.context.stroke(path)
+            canvas.stroke(path)
         }
         //draw border
         if (danmaku.borderColor != 0) {
             let borderPaint: DanmakuPaint = displayerConfig.getBorderPaint(danmaku)
             applyPaintToCanvas(borderPaint, canvas)
-            canvas.context.strokeRect(_left, _top, danmaku.paintWidth, danmaku.paintHeight)
+            canvas.strokeRect(_left, _top, danmaku.paintWidth, danmaku.paintHeight)
         }
     }
 }

@@ -18,7 +18,7 @@ public abstract class Proxy {
 
 public abstract class BaseCacheStuffer <: Equatable<BaseCacheStuffer> {
     public var mProxy: ?Proxy = None
-
+    var bitmaps: ?HashMap<String, ImageBitmap> = None
     public func prepare(danmaku: BaseDanmaku, fromWorkerThread: Bool): Unit {
         if (let Some(v) <- mProxy) {
             v.prepareDrawing(danmaku, fromWorkerThread)

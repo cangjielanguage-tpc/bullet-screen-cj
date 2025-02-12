@@ -16,7 +16,7 @@ public interface SimpleOnGestureListener {
 }
 
 public class DanmakuTouchHelper {
-    static let nullTouchDelegate = unsafe{zeroValue<GestureDetector>()}
+    static let nullTouchDelegate = unsafe{zeroValue<GestureDetector>()}// 一定初始化， 不用处理
     var mTouchDelegate: GestureDetector
     var danmakuView: IDanmakuView
     var mDanmakuBounds: RectF
@@ -104,7 +104,7 @@ class GestureDetector <: SimpleOnGestureListener {
     private let TIME_LONG_PRESS: Int64 = 600
     private var startTime: Int64 = 0
     private var endTime: Int64 = 0
-    private var danmakuTouchHelper: DanmakuTouchHelper = unsafe { zeroValue<DanmakuTouchHelper>() }
+    private var danmakuTouchHelper: DanmakuTouchHelper
 
     public init(danmakuTouchHelper: DanmakuTouchHelper) {
         this.danmakuTouchHelper = danmakuTouchHelper

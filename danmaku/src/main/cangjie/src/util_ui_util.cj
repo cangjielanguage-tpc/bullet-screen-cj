@@ -5,14 +5,14 @@ package danmaku
 
 public class SystemClock {
     public static func uptimeMillis(): Int64 {
-        return DateTime.now().toUnixTimeStamp().toMilliseconds()
+        return SystemDateTime.getRealTime()
     }
 }
 
 public func measureTextHeight(paint: DanmakuPaint): Float64 {
     applyPaintToCanvas(paint, paint.getContext())
     if (let Some(context) <- paint.getContext()) {
-        return (context.context.measureText("M").width * 1.2) / pxTovp
+        return (context.measureText("M").width * 1.2) / pxTovp
     }
     return paint.getTextSize()
 }
@@ -20,7 +20,7 @@ public func measureTextHeight(paint: DanmakuPaint): Float64 {
 public func measureTextWidth(text: String, paint: DanmakuPaint): Float64 {
     applyPaintToCanvas(paint, paint.getContext())
     if (let Some(v) <- paint.getContext()) {
-        return v.context.measureText(text).width
+        return v.measureText(text).width
     } else {
         return 1.0
     }
@@ -28,15 +28,17 @@ public func measureTextWidth(text: String, paint: DanmakuPaint): Float64 {
 
 public func applyPaintToCanvas(paint: DanmakuPaint, context: ?DanmakuCanvas2D): Unit {
     if (let Some(v) <- context) {
-        v.context.font(size: Length(paint.getTextSize(), unitType: LengthType.px), family: paint.getTypeface())
-        v.context.lineWidth(paint.getStrokeWidth() / pxTovp)
-        v.context.shadowBlur(paint.getRadius() / pxTovp)
-        v.context.shadowOffsetX(paint.getDx() / pxTovp)
-        v.context.shadowOffsetY(paint.getDy() / pxTovp)
-        v.context.shadowColor(paint.getShadowColor())
-        v.context.shadowBlur(paint.getRadius())
-        v.context.fillStyle(colorNumber2String(paint.getColor(), paint.getAlpha()))
-        v.context.strokeStyle(colorNumber2String(paint.getColor(), paint.getAlpha()))
+        synchronized (v.lock) {
+            v.getContext().font(size: Length(paint.getTextSize(), unitType: LengthType.px), family: paint.getTypeface())
+            v.getContext().lineWidth(paint.getStrokeWidth() / pxTovp)
+            v.getContext().shadowBlur(paint.getRadius() / pxTovp)
+            v.getContext().shadowOffsetX(paint.getDx() / pxTovp)
+            v.getContext().shadowOffsetY(paint.getDy() / pxTovp)
+            v.getContext().shadowColor(paint.getShadowColor())
+            v.getContext().shadowBlur(paint.getRadius())
+            v.getContext().fillStyle(colorNumber2String(paint.getColor(), paint.getAlpha()))
+            v.getContext().strokeStyle(colorNumber2String(paint.getColor(), paint.getAlpha()))
+        }
     }
 }
 

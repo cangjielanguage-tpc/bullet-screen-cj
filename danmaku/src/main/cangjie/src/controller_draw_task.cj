@@ -4,14 +4,15 @@
 
 package danmaku
 
-let nullConfigChangedCallback  = unsafe {zeroValue<ConfigChangedCallback>()}
-let nullIDanmakus              = unsafe {zeroValue<IDanmakus>()}
+let nullConfigChangedCallback  = ConfigChangedCallback({config: DanmakuContext, tag: DanmakuConfigTag, values: Array<Any> =>
+        return false
+    })
 
 public class DrawTask <: IDrawTask {
   protected var mContext: DanmakuContext
   protected var mDisp: AbsDisplayer<DanmakuCanvas2D, String>
-  protected var danmakuList: IDanmakus = nullIDanmakus
-  protected var isNullDanmakuList: Bool = true
+  protected var danmakuList: ?IDanmakus = None
+
   protected var mParser: ?BaseDanmakuParser = None
   var mTaskListener: TaskListener
   var mRenderer: IRenderer
@@ -37,11 +38,9 @@ public class DrawTask <: IDrawTask {
     let renderer = DanmakuRenderer(context)
     this.mRenderer = renderer
     this.mTimer = timer
-    this.mConfigChangedCallback = ConfigChangedCallback (
-      {config: DanmakuContext, tag: DanmakuConfigTag, values: Array<Any> =>
+    this.mConfigChangedCallback = ConfigChangedCallback ({config: DanmakuContext, tag: DanmakuConfigTag, values: Array<Any> =>
         return this.onDanmakuConfigChanged(config, tag, values)
-      }
-    )
+    })
     renderer.setOnDanmakuShownListener({ danmaku: BaseDanmaku =>
         this.mTaskListener.onDanmakuShown(danmaku)
     })
@@ -58,14 +57,14 @@ public class DrawTask <: IDrawTask {
   }
 
   public func addDanmaku(item: BaseDanmaku): Unit {
-    if (this.isNullDanmakuList) {
+    if (this.danmakuList.isNone()) {
       return
     }
     if (item.isLive) {
       this.mLiveDanmakus.addItem(item)
       this.removeUnusedLiveDanmakusIn(10)
     }
-    item.index = this.danmakuList.size()
+    item.index = this.danmakuList.getOrThrow().size()
     var subAdded: Bool = true
     if (this.mLastBeginMills <= item.getActualTime() && item.getActualTime() <= this.mLastEndMills) {
       subAdded = this.danmakus.addItem(item)
@@ -73,7 +72,7 @@ public class DrawTask <: IDrawTask {
       subAdded = false
     }
     var added: Bool = false
-    added = this.danmakuList.addItem(item)
+    added = this.danmakuList.getOrThrow().addItem(item)
     if (!subAdded || !added) {
       this.mLastBeginMills = 0
       this.mLastEndMills = 0
@@ -98,17 +97,17 @@ public class DrawTask <: IDrawTask {
   }
 
   public func removeAllDanmakus(isClearDanmakusOnScreen: Bool): Unit {
-    if (this.danmakuList.isEmpty()){
+    if (this.danmakuList.getOrThrow().isEmpty()){
       return
     }
     if (!isClearDanmakusOnScreen) {
       let beginMills: Int64 = this.mTimer.currMillisecond - this.mContext.mDanmakuFactory.MAX_DANMAKU_DURATION - 100
       let endMills: Int64 = this.mTimer.currMillisecond + this.mContext.mDanmakuFactory.MAX_DANMAKU_DURATION
-      if (let Some(v) <- this.danmakuList.subnew(beginMills, endMills)) {
+      if (let Some(v) <- this.danmakuList.getOrThrow().subnew(beginMills, endMills)) {
         this.danmakus = v
       }
     }
-    this.danmakuList.clear()
+    this.danmakuList?.clear()
 
   }
 
@@ -133,7 +132,7 @@ public class DrawTask <: IDrawTask {
   }
 
   protected func removeUnusedLiveDanmakusIn(msec: Int64): Unit {
-    if (this.isNullDanmakuList || this.danmakuList.isEmpty() || this.mLiveDanmakus.isEmpty()) {
+    if (this.danmakuList.isSome() || this.danmakuList.getOrThrow().isEmpty() || this.mLiveDanmakus.isEmpty()) {
       return
     }
     let startTime = SystemClock.uptimeMillis()
@@ -143,7 +142,7 @@ public class DrawTask <: IDrawTask {
         return ACTION_BREAK
       }
       if (isTimeout) {
-        this.danmakuList.removeItem(danmaku)
+        this.danmakuList?.removeItem(danmaku)
         this.onDanmakuRemoved(danmaku)
         return ACTION_REMOVE
       } else {
@@ -159,13 +158,9 @@ public class DrawTask <: IDrawTask {
     var subDanmakus: ?IDanmakus = None
     var i: Int64 = 0
     while (i < 3) { //avoid ConcurrentModificationException
-      i++
-      try {
-        subDanmakus = this.danmakuList.subnew(beginMills, endMills)
+        i++
+        subDanmakus = this.danmakuList.getOrThrow().subnew(beginMills, endMills)
         break
-      } catch (e: Exception) {
-
-      }
     }
     let visibleDanmakus: IDanmakus = Danmakus()
     if (let Some(v) <- subDanmakus) {
@@ -208,8 +203,8 @@ public class DrawTask <: IDrawTask {
     this.mLastBeginMills = 0
     this.mLastEndMills = 0
 
-    if (!this.isNullDanmakuList) {
-      let last: ?BaseDanmaku = this.danmakuList.last()
+    if (this.danmakuList.isSome()) {
+      let last: ?BaseDanmaku = this.danmakuList.getOrThrow().last()
       if (let Some(v) <- last) {
         if (v.isTimeOut()) {
           this.mLastDanmaku = v
@@ -258,10 +253,9 @@ public class DrawTask <: IDrawTask {
           that.mTaskListener.onDanmakuAdd(danmak);
       })
       .getDanmakus()
-    this.isNullDanmakuList = false
     that.mContext.mGlobalFlagValues.resetAll()
-    if (!isNullDanmakuList) {
-      that.mLastDanmaku = that.danmakuList.last()
+    if (danmakuList.isSome()) {
+      that.mLastDanmaku = that.danmakuList.getOrThrow().last()
     }
   }
 
@@ -276,7 +270,7 @@ public class DrawTask <: IDrawTask {
       this.mRenderer.clearRetainer()
       this.clearRetainerFlag = false
     }
-    if (!this.isNullDanmakuList) {
+    if (this.danmakuList.isSome()) {
       let canvas: DanmakuCanvas2D = disp.getExtraData()
       DrawHelper.clearCanvas(canvas)
       if (this.mIsHidden && !this.mRequestRender) {
@@ -291,7 +285,7 @@ public class DrawTask <: IDrawTask {
       var screenDanmakus: ?IDanmakus = this.danmakus
 
       if (this.mLastBeginMills > beginMills || timer.currMillisecond > this.mLastEndMills) {
-        screenDanmakus = this.danmakuList.sub(beginMills, endMills)
+        screenDanmakus = this.danmakuList.getOrThrow().sub(beginMills, endMills)
         if (let Some(v) <- screenDanmakus) {
           this.danmakus = v
         }
@@ -312,7 +306,6 @@ public class DrawTask <: IDrawTask {
       }
       // draw screenDanmakus
       this.mRenderingState.isRunningDanmakus = false
-
       if (!screenDanmakus.getOrThrow().isEmpty()) {
         this.mRenderer.draw(this.mDisp, screenDanmakus.getOrThrow(), this.mStartRenderTime, renderingState)
         this.endTracing(renderingState)
