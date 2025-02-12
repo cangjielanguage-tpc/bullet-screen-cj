@@ -182,6 +182,8 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     public var requestFlags: Int64 = 0
     static var LAST_HASH: Int64 = 0
     protected var mHashCode: Int64
+    public var isAnimation: Bool = false
+    public var pixelMapList: ArrayList<PixelMap> = ArrayList<PixelMap>()
 
     public var firstShownFlag: Int64 = -1
     private var mTags: HashMap<Int64, Any> = HashMap<Int64, Any>()
@@ -189,6 +191,22 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     public init() {
         BaseDanmaku.LAST_HASH++
         mHashCode = BaseDanmaku.LAST_HASH
+    }
+
+    public func setPixelMapList(pixelMapList: ArrayList<PixelMap>): Unit {
+        this.pixelMapList = pixelMapList
+    }
+
+    public func getPixelMapList(): ArrayList<PixelMap> {
+        return this.pixelMapList
+    }
+
+    public func setIsAnimation(isAnimation: Bool): Unit {
+        this.isAnimation = isAnimation
+    }
+
+    public func getIsAnimation(): Bool {
+        return this.isAnimation
     }
 
     public func getDuration(): Int64 {
@@ -223,8 +241,8 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     }
 
     public open func isShown(): Bool {
-        let a =visibility
-        let b =BaseDanmaku.VISIBLE
+        let a = visibility
+        let b = BaseDanmaku.VISIBLE
         let c = visibility == BaseDanmaku.VISIBLE
         let d = visibleResetFlag
         let e = flags().VISIBLE_RESET_FLAG
@@ -237,7 +255,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
         if (let Some(v) <- ctime) {
             return v - getActualTime() >= duration.value
         } else {
-            return if (let Some(v) <-mTimer ) {
+            return if (let Some(v) <- mTimer) {
                 isTimeOut(ctime: v.currMillisecond)
             } else {
                 true
@@ -386,7 +404,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
 
     func setCompareMethod(other: (BaseDanmaku, BaseDanmaku) -> Ordering): Unit {
         this.comparefunc = other
-    }   
+    }
     public open func compare(other: BaseDanmaku): Ordering {
         if (let Some(v) <- comparefunc) {
             return v(this, other)

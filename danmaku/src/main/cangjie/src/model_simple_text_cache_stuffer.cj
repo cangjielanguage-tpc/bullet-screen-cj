@@ -28,7 +28,7 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
                     w = max(tr, w)
                 }
             }
-            danmaku.paintWidth = w
+            danmaku.paintWidth = w / pxTovp
             danmaku.paintHeight = Float64(v.size) * textHeight
         } else {
             if (danmaku.text == "") {
@@ -37,7 +37,7 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
                 w = measureTextWidth(danmaku.text, paint)
                 textHeight = getCacheHeight(danmaku, paint)
             }
-            danmaku.paintWidth = w
+            danmaku.paintWidth = w / pxTovp
             danmaku.paintHeight = textHeight
 
         }

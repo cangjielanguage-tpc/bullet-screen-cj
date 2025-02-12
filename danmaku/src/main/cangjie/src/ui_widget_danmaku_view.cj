@@ -16,9 +16,7 @@ import std.sync.{Timer, sleep, CatchupStyle}
 var pxTovp: Float64 = 3.25
 let MAX_RECORD_SIZE: Int64 = 50
 let ONE_SECOND: Int64 = 1000
-
-let NullDrawHandler = unsafe {zeroValue<DrawHandler>()}
-
+let NullDrawHandler = unsafe { zeroValue<DrawHandler>() }
 let DefaultDanmakuViewModel = DanmakuViewModel()
 
 @Component
@@ -52,7 +50,7 @@ public class DanmakuView {
     var mOnDanmakuClickListener: ?OnDanmakuClickListener = None
     var mXOff: Float64 = 0.0
     var mYOff: Float64 = 0.0
-    var mTouchHelper: DanmakuTouchHelper = unsafe {zeroValue<DanmakuTouchHelper>()}
+    var mTouchHelper: DanmakuTouchHelper = unsafe { zeroValue<DanmakuTouchHelper>() }
     var mShowFps: Bool = false
     var mDanmakuVisible: Bool = true
     var mDrawingThreadType: Int64 = THREAD_TYPE_NORMAL_PRIORITY
@@ -128,14 +126,14 @@ public class DanmakuView {
     @Builder
     func setSvgCanvas(b: Bool) {
         Canvas(this.context.context)
-            .onReady({ =>
-                this.ready = true
+            .onReady({
+                => this.ready = true
             })
             .width(100.percent)
             .height(100.percent)
             .backgroundColor(Color.TRANSPARENT)
-            .onAreaChange( { old, new =>
-                this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
+            .onAreaChange({
+                old, new => this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
             })
     }
 
@@ -143,11 +141,13 @@ public class DanmakuView {
         Stack() {
             setSvgCanvas(pxTovpRes())
         }
-        .backgroundColor(this.mbackgroundColor)
-        .height(100.percent)
-        .width(100.percent)
-        .visibility(getVisible(this.mDanmakuVisible))
-//                .onTouch((event: TouchEvent): Unit => this.onTouchEvent(event))
+            .backgroundColor(this.mbackgroundColor)
+            .height(100.percent)
+            .width(100.percent)
+            .visibility(getVisible(this.mDanmakuVisible))
+            .onTouch({
+                event => this.onTouchEvent(event)
+            })
     }
 
     func getVisible(b: Bool): Visibility {
@@ -203,7 +203,6 @@ public class DanmakuView {
 
     func release(): Unit { // from IDanmakuView 播放控制
         this.stop()
-//        this.mDrawTimes.clear()
     }
 
     func stop(): Unit { // from IDanmakuView 播放控制
@@ -316,7 +315,7 @@ public class DanmakuView {
             this.mClearFlag = false
         } else {
             if (this.hasHandler) {
-                    this.handler.draw(canvas)
+                this.handler.draw(canvas)
                 if (this.mShowFps) {
                     let fps: String = "fps ${this.fps()}, time:${this.getCurrentTime() / 1000}"
                     DrawHelper.drawFPS(canvas, fps)
@@ -458,7 +457,7 @@ public class DanmakuView {
         this.mDrawingThreadType = threadType
     }
 
-    public func enableDanmakuDrawingCache(enable: Bool): Unit{
+    public func enableDanmakuDrawingCache(enable: Bool): Unit {
         this.mEnableDanmakuDrwaingCache = enable
     }
 
@@ -511,4 +510,3 @@ public class DanmakuView {
         this.mbackgroundColor = color
     }
 }
-

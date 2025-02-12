@@ -12,7 +12,7 @@ public class SystemClock {
 public func measureTextHeight(paint: DanmakuPaint): Float64 {
     applyPaintToCanvas(paint, paint.getContext())
     if (let Some(context) <- paint.getContext()) {
-        return context.context.measureText("M").width * 1.2
+        return (context.context.measureText("M").width * 1.2) / pxTovp
     }
     return paint.getTextSize()
 }
@@ -28,7 +28,7 @@ public func measureTextWidth(text: String, paint: DanmakuPaint): Float64 {
 
 public func applyPaintToCanvas(paint: DanmakuPaint, context: ?DanmakuCanvas2D): Unit {
     if (let Some(v) <- context) {
-        v.context.font(size: Length(paint.getTextSize() /*** pxTovp*/, unitType: LengthType.px), family: paint.getTypeface())
+        v.context.font(size: Length(paint.getTextSize(), unitType: LengthType.px), family: paint.getTypeface())
         v.context.lineWidth(paint.getStrokeWidth() / pxTovp)
         v.context.shadowBlur(paint.getRadius() / pxTovp)
         v.context.shadowOffsetX(paint.getDx() / pxTovp)
