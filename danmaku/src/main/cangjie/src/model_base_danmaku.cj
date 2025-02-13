@@ -379,11 +379,11 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     }
 
     public operator func ==(other: BaseDanmaku): Bool {
-        return compare(other) == Ordering.EQ
+        return refEq(this, other)
     }
 
     public operator func !=(other: BaseDanmaku): Bool {
-        return compare(other) != Ordering.EQ
+        return !(this == other)
     }
 
     public operator func >(other: BaseDanmaku): Bool {

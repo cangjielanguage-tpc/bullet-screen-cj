@@ -266,7 +266,7 @@ abstract class IAlignTopRetainer <: IDanmakusRetainer {
         if (isOutOfVertialEdge) {
             clear()
         }
-        drawItem.layout(disp, drawItem.getLeft(), Float64(topPos))
+        drawItem.layout(disp, drawItem.getLeft(), topPos)
         if (!shown) {
             mVisibleDanmakus.removeItem(removeItem)
             mVisibleDanmakus.addItem(drawItem)

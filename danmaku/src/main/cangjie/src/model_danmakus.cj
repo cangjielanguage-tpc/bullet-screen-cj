@@ -139,6 +139,7 @@ public class Danmakus <: IDanmakus {
 
     public override func sub(startTime: Int64, endTime: Int64): ?IDanmakus {
         if (items.isEmpty() || items.size == 0) {
+            // TODO.. l2r 弹幕问题
             return None
         }
         if (!hasSubItems) {
@@ -195,11 +196,11 @@ public class Danmakus <: IDanmakus {
     }
 
     public override func first(): ?BaseDanmaku {
-        return items.first?.value
+        return items.getFirst()
     }
 
     public override func last(): ?BaseDanmaku {
-        return items.last?.value
+        return items.getLast()
     }
 
     public override func contains(item: BaseDanmaku): Bool {
