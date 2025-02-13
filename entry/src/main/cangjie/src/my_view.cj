@@ -38,6 +38,8 @@ import std.collection.*
 import std.math.*
 import encoding.json.JsonValue
 import ohos.component.VerticalAlign
+import std.sync.Timer
+import std.time.Duration
 
 @Entry
 @Component
@@ -56,10 +58,9 @@ class MyView {
 ////    private var pixelMapList: Array<image.PixelMap> = []
 ////    private var gifPath: string = ""
     private var path: String = ""
-//
     @State var bottomHeight: Float64 = 0.0
-//
     var display: ?Display = Option<Display>.None
+    var timer: ?Timer = Option<Timer>.None
 
     func getModel():DanmakuViewModel {
         this.model
@@ -164,22 +165,15 @@ class MyView {
             this.buildText(5, { =>
               this.addDanmaKuShowTextAndImage(false);
             });
-//            this.buildText(6, { =>
-//              if (this.TextList[6] == '定时发送' || this.TextList[6] == 'Schedule to send') {
-//                this.intervalId = -1;
-//                this.timeoutId = -1;
-//                this.addDanmakus()
-//                this.TextList[6] =  "取消定时";
-//              } else {
-//                if (this.timeoutId != -1) {
-//                  clearTimeout(this.timeoutId)
-//                }
-//                if (this.intervalId != -1) {
-//                  clearInterval(this.intervalId)
-//                }
-//                this.TextList[6] = "定时发送"
-//              }
-//            });
+            this.buildText(6, { =>
+              if (this.TextList[6] == '定时发送' || this.TextList[6] == 'Schedule to send') {
+                timer = Timer.repeat(Duration.millisecond * 300, Duration.millisecond * 1000, { => this.addDanmaku(true)})
+                this.TextList[6] = "取消定时"
+              } else {
+                timer.getOrThrow().cancel()
+                this.TextList[6] = "定时发送"
+              }
+            });
 //            this.buildText(7, { =>
 //              this.addDanmaKuShowGif(false);
 //            });
@@ -221,7 +215,7 @@ class MyView {
     danmaku.textSize = 25.0 * (this.mParser.getDisplayer().getOrThrow().getDensity() * 0.8)
     danmaku.textColor = 0xffff0000
     danmaku.textShadowColor = 0
-    danmaku.borderColor = 0xff00ff00
+    danmaku.underlineColor = 0xff00ff00
     this.model.addDanmaku(danmaku)
   }
 
