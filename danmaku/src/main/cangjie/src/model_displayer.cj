@@ -353,7 +353,7 @@ public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
     public override func draw(danmaku: BaseDanmaku): Int64 {
         let top: Float64 = danmaku.getTop()
         let left: Float64 = danmaku.getLeft()
-        if (let Some(canvas) <- canvas) {
+        if (let Some(can) <- canvas) {
             var alphaPaint: ?DanmakuPaint = None
             var needRestore: Bool = false
             if (danmaku.getType() == BaseDanmaku.TYPE_SPECIAL) {
@@ -361,7 +361,7 @@ public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
                     return NOTHING_RENDERING
                 }
                 if (danmaku.rotationZ != 0.0 || danmaku.rotationY != 0.0) {
-                    saveCanvas(danmaku, canvas, left, top)
+                    saveCanvas(danmaku, can, left, top)
                     needRestore = true
                 }
                 let alpha: Int64 = danmaku.getAlpha()
@@ -384,11 +384,16 @@ public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
             } else {
                 resetPaintAlpha(mDisplayConfig.PAINT)
             }
-            drawDanmaku(danmaku, canvas, left, top, false)
-            result = TEXT_RENDERING
+            try {
+                can.lock.lock()
+                drawDanmaku(danmaku, can, left, top, false)
+                result = TEXT_RENDERING
 
-            if (needRestore) {
-                restoreCanvas(canvas)
+                if (needRestore) {
+                    restoreCanvas(can)
+                }
+            } finally {
+            	can.lock.unlock()
             }
 
             return result
@@ -410,7 +415,7 @@ public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
     }
 
     private func restoreCanvas(canvas: DanmakuCanvas2D): Unit {
-        canvas.context.restore()
+        canvas.restore()
     }
 
     private func saveCanvas(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64, top: Float64): Int64 {

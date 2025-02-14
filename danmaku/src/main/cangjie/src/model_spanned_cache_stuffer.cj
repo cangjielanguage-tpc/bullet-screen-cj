@@ -102,37 +102,45 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
         var needRestore: Bool = false
         let ascent: Float64 = measureTextHeight(paint) * -0.9
         if (left != 0.0 && top != 0.0) {
-            canvas.context.save()
-            canvas.context.translate(left, (top + ascent))
+            canvas.save()
+            canvas.translate(left, (top + ascent))
             needRestore = true
         }
         if (isAnimation) {
             let pixelMapList: ArrayList<PixelMap> = danmaku.getPixelMapList()
             index = index % pixelMapList.size
-            canvas.context.drawImage(pixelMapList[index], 0.0, 0.0, width, height)
+            canvas.drawImage(pixelMapList[index], 0.0, 0.0, width, height)
             index++
             applyPaintToCanvas(paint, canvas)
             if (needRestore) {
-                canvas.context.translate(0.0, -ascent)
+                canvas.translate(0.0, -ascent)
             }
-            canvas.context.fillText(danmaku.text, width, 0.0)
+            canvas.fillText(danmaku.text, width, 0.0)
         } else if (!isAnimation) {
-            let imageBitmap: ImageBitmap = ImageBitmap(src)
-            canvas.context.drawImage(imageBitmap, 0.0, 0.0, width, height)
-            canvas.context.fillStyle(0x8A2233B1) // #8A2233B1
+            let imageBitmap: ImageBitmap = if (let Some(v) <- bitmaps) {  // TODO  LRU 优化
+                v.get(src) ?? {=>
+                    let bm = ImageBitmap(src)
+                    v.put(src, bm)
+                    return bm
+                }()
+            } else {
+                ImageBitmap(src)
+            }
+            canvas.drawImage(imageBitmap, 0.0, 0.0, width, height)
+            canvas.fillStyle(0x8A2233B1) // #8A2233B1
             var rectWidth: Float64 = danmaku.paintWidth - width - 2.0 * danmaku.padding
             if (danmaku.borderColor != 0) {
                 rectWidth -= 2.0 * displayerConfig.BORDER_WIDTH
             }
-            canvas.context.fillRect(width, 0.0, rectWidth, height)
+            canvas.fillRect(width, 0.0, rectWidth, height)
             applyPaintToCanvas(paint, canvas)
             if (needRestore) {
-                canvas.context.translate(0.0, -ascent)
+                canvas.translate(0.0, -ascent)
             }
-            canvas.context.fillText(danmaku.text, width, 0.0)
+            canvas.fillText(danmaku.text, width, 0.0)
         }
         if (needRestore) {
-            canvas.context.restore()
+            canvas.restore()
         }
     }
 

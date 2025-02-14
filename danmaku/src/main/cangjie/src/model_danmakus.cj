@@ -6,13 +6,11 @@ package danmaku
 
 public class Danmakus <: IDanmakus {
     public var items: SortedSet<BaseDanmaku>
-    private static let NULL_DANMAKUS: Danmakus = unsafe {zeroValue<Danmakus>()}
-    private static let NULL_BASE_DANMAKUS: BaseDanmaku = unsafe {zeroValue<BaseDanmaku>()}
-    private var subItems: Danmakus = NULL_DANMAKUS
+    private var subItems: ?Danmakus = None
     private var hasSubItems: Bool = false
-    private var startItem: BaseDanmaku = NULL_BASE_DANMAKUS
+    private var startItem: ?BaseDanmaku = None
     private var hasStartItem: Bool = false
-    private var endItem: BaseDanmaku = NULL_BASE_DANMAKUS
+    private var endItem: ?BaseDanmaku = None
     private var hasEndItem: Bool = false
     private var endSubItem: ?BaseDanmaku = None
     private var startSubItem: ?BaseDanmaku = None
@@ -72,11 +70,9 @@ public class Danmakus <: IDanmakus {
 
     public func setItems(i: Collection<BaseDanmaku>): Unit {
         if (mDuplicateMergingEnabled && mSortType != ST_BY_LIST) {
-//            synchronized (this.mLockObject) { //TODO
-                this.items.clear();
-                this.items.appendAll(items);
-                items = this.items;
-//            }
+            this.items.clear();
+            this.items.appendAll(items);
+            items = this.items;
         } else {
             this.items = (i as SortedSet<BaseDanmaku>).getOrThrow()
         }
@@ -89,12 +85,9 @@ public class Danmakus <: IDanmakus {
     }
 
     public override func addItem(item: BaseDanmaku): Bool {
-        try {
-            items.add(item)
-            mSize.fetchAdd(1)
-            return true
-        } catch (e: Exception) {}
-        return false
+        items.add(item)
+        mSize.fetchAdd(1)
+        return true
     }
 
     public override func removeItem(item: ?BaseDanmaku): Bool {
@@ -145,14 +138,14 @@ public class Danmakus <: IDanmakus {
         if (!hasSubItems) {
             hasSubItems = true
             if (mSortType == ST_BY_LIST) {
-                let subItems = Danmakus(ST_BY_LIST)
-                subItems.setItems(items)
+                subItems = Danmakus(ST_BY_LIST)
+                subItems?.setItems(items)
             } else {
                 subItems = Danmakus(mDuplicateMergingEnabled)
             }
         }
         if (mSortType == ST_BY_LIST) {
-            return subItems
+            return (subItems ?? None)
         }
         if (!hasStartItem) {
             hasStartItem = true
@@ -163,15 +156,15 @@ public class Danmakus <: IDanmakus {
             endItem = createItem("end")
         }
         if (hasSubItems) {
-            let dtime: Int64 = startTime - startItem.getActualTime()
-            if (dtime >= 0 && endTime <= endItem.getActualTime()) {
-                return this.subItems
+            let dtime: Int64 = startTime - startItem.getOrThrow().getActualTime()
+            if (dtime >= 0 && endTime <= endItem.getOrThrow().getActualTime()) {
+                return (subItems ?? None)
             }
         }
-        startItem.setTime(startTime)
-        endItem.setTime(endTime)
-        subItems.setItems(items.subSet(startItem, endItem))
-        return subItems
+        startItem?.setTime(startTime)
+        endItem?.setTime(endTime)
+        subItems?.setItems(items.subSet(startItem.getOrThrow(), endItem.getOrThrow()))
+        return (subItems ?? None)
     }
 
     private func createItem(text: String): BaseDanmaku {
@@ -189,7 +182,7 @@ public class Danmakus <: IDanmakus {
         }
         if (hasSubItems) {
             hasSubItems = false
-            subItems = NULL_DANMAKUS
+            subItems = None
             startItem = createItem("start")
             endItem = createItem("end")
         }
@@ -220,13 +213,13 @@ public class Danmakus <: IDanmakus {
         mDuplicateMergingEnabled = enable
         hasStartItem = false
         hasEndItem = false
-        startItem = NULL_BASE_DANMAKUS
-        endItem = NULL_BASE_DANMAKUS
+        startItem = None
+        endItem = None
         if (!hasSubItems) {
             hasSubItems = true
             subItems = Danmakus(enable)
         }
-        this.subItems.setDuplicateMergingEnabled(enable)
+        this.subItems?.setDuplicateMergingEnabled(enable)
     }
 
     public override func getCollection(): SortedSet<BaseDanmaku> {
@@ -250,23 +243,24 @@ public class Danmakus <: IDanmakus {
 
     private func forEach<T>(consumer: Consumer<BaseDanmaku, T>): Unit {
         consumer.before()
-        let removes = ArrayList<BaseDanmaku>()
+        var index = -1
         for (v in this.items) {
+            index ++
             let action: Int64 = consumer.accept(v)
             if (action == ACTION_BREAK) {
                 return
             } else if (action == ACTION_REMOVE) {
-                removes.append(v)
+                this.items.remove(index)
+                index--
                 mSize.fetchSub(1)
             } else if (action == ACTION_REMOVE_AND_BREAK) {
-                removes.append(v)
+                this.items.remove(index)
+                index--
                 mSize.fetchSub(1)
                 return
             }
         }
-        for (i in 0..removes.size) {
-            this.items.remove(removes[i])
-        }
+
         consumer.after()
     }
 }

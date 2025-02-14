@@ -53,10 +53,8 @@ class MyView {
     @State
     var model: DanmakuViewModel = DanmakuViewModel()
     var mContext: DanmakuContext = DanmakuContext.create()
-    private var mParser: BaseDanmakuParser = unsafe {zeroValue<BaseDanmakuParser>()}
+    private var mParser: ?BaseDanmakuParser = None
     private var mCacheStufferAdapter: Proxy = Pro()
-////    private var pixelMapList: Array<image.PixelMap> = []
-////    private var gifPath: string = ""
     private var path: String = ""
     @State var bottomHeight: Float64 = 0.0
     var display: ?Display = Option<Display>.None
@@ -88,7 +86,7 @@ class MyView {
         this.mParser = this.createParser()
         this.model.setCallback(DanmaEntryCall(this))
         this.model.setOnDanmakuClickListener(OnDanMu(this))
-        this.model.prepare(this.mParser, this.mContext)
+        this.model.prepare(this.mParser.getOrThrow(), this.mContext)
         this.model.showFPS(true)
         this.model.backgroundColor(Color.GRAY)
     }
@@ -198,7 +196,7 @@ class MyView {
     danmaku.priority = 0 // 可能会被各种过滤器过滤并隐藏显示
     danmaku.isLive = isLive
     danmaku.setTime(this.model.getCurrentTime() + 1200)
-    danmaku.textSize = 25.0 * (this.mParser.getDisplayer().getOrThrow().getDensity() * 0.8)
+    danmaku.textSize = 25.0 * (this.mParser.getOrThrow().getDisplayer().getOrThrow().getDensity() * 0.8)
     danmaku.textColor = 0xffff0000
     danmaku.textShadowColor = 0xffffffff
     danmaku.borderColor = 0xff00ff00
@@ -212,7 +210,7 @@ class MyView {
     danmaku.priority = 1 // 一定会显示, 一般用于本机发送的弹幕
     danmaku.isLive = isLive
     danmaku.setTime(this.model.getCurrentTime() + 1200)
-    danmaku.textSize = 25.0 * (this.mParser.getDisplayer().getOrThrow().getDensity() * 0.8)
+    danmaku.textSize = 25.0 * (this.mParser.getOrThrow().getDisplayer().getOrThrow().getDensity() * 0.8)
     danmaku.textColor = 0xffff0000
     danmaku.textShadowColor = 0
     danmaku.underlineColor = 0xff00ff00

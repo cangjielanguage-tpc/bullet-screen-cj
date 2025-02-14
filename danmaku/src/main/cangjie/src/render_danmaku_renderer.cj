@@ -5,7 +5,7 @@
 package danmaku
 
 class InnerVerifier <: Verifier {
-    static let NULL_CLASS = unsafe {zeroValue<InnerVerifier>()}
+    static let NULL_CLASS = unsafe {zeroValue<InnerVerifier>()}  // 一定初始化， 不用处理
     private let self: DanmakuRenderer
     init(self: DanmakuRenderer) {
         this.self = self
@@ -89,9 +89,9 @@ public class DanmakuRenderer <: Renderer {
 }
 
 class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
-    static let NULL_CLASS = unsafe {zeroValue<InnerConsumer>()}
+    static let NULL_CLASS = unsafe {zeroValue<InnerConsumer>()}// 一定初始化， 不用处理
     private var lastItem: ?BaseDanmaku = Option<BaseDanmaku>.None
-    public var disp: IDisplayer = unsafe {zeroValue<IDisplayer>()}
+    public var disp: ?IDisplayer = None
     public var renderingState: ?RenderingState = Option<RenderingState>.None
     public var startRenderTime: Int64 = 0
     private let self: DanmakuRenderer
@@ -103,7 +103,7 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
     public override func accept(drawItem: BaseDanmaku): Int64 {
         lastItem = drawItem
         if (drawItem.isTimeOut()) {
-            disp.recycle(drawItem)
+            disp?.recycle(drawItem)
             if (let Some(v) <- renderingState) {
                 return if (v.isRunningDanmakus) {
                     ACTION_REMOVE
@@ -141,25 +141,25 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
 
         // measure
         if (!drawItem.isMeasured()) {
-            drawItem.measure(disp, false)
+            drawItem.measure(disp.getOrThrow(), false)
         }
 
         // notify prepare drawing
         if (!drawItem.isPrepared()) {
-            drawItem.prepare(disp, false)
+            drawItem.prepare(disp.getOrThrow(), false)
         }
 
         // layout
         if (let Some(v) <- self.mDanmakusRetainer) {
-            v.fix(drawItem, disp, self.mVerifier)
+            v.fix(drawItem, disp.getOrThrow(), self.mVerifier)
         }
 
         // draw
         if (drawItem.isShown()) {
-            if (drawItem.lines.isNone() && drawItem.getBottom() > disp.getHeight()) {
+            if (drawItem.lines.isNone() && drawItem.getBottom() > disp.getOrThrow().getHeight()) {
                 return ACTION_CONTINUE // skip bottom outside danmaku
             }
-            let renderingType: Int64 = drawItem.draw(disp)
+            let renderingType: Int64 = drawItem.draw(disp.getOrThrow())
             if (let Some(v) <- renderingState) {
                 if (renderingType == CACHE_RENDERING) {
                     v.cacheHitCount++

@@ -4,6 +4,8 @@
 
 package danmaku
 
+import std.objectpool.*
+
 internal class Args {
     var what: Int64 = 0
     var obj: Any
@@ -21,8 +23,20 @@ public class Message <: Comparable<Message>{
     var what: Int64
     var obj: Any
     var callback: Option<RunnableRecords>
-    var target: ?Handler = None
     var when: Int64 = 0
+    var target: ?Handler = None
+
+    static let objectPool = ObjectPool<Message>(
+        {=> Message(what: 0)},
+        resetFunc: {m: Message =>
+            m.what = 0
+            m.obj = ()
+            m.callback = None
+            m.target = None
+            m.when = 0
+            return m
+        }
+    )
 
     internal init(what!: Int64, obj!: Any = (), callback!: Option<RunnableRecords> = None) {
         this.what = what
@@ -36,11 +50,38 @@ public class Message <: Comparable<Message>{
         this.callback = args.callback
     }
 
+    static func obtain(): Message {
+        return objectPool.get()
+    }
+
+    static func obtain(h: Handler): Message {
+        let msg = objectPool.get()
+        msg.target = h
+        return msg
+    }
+
+    static func obtain(h: Handler, what: Int64): Message {
+        let msg = objectPool.get()
+        msg.what = what
+        msg.target = h
+        return msg
+    }
+
+    static func obtain(h: Handler, what: Int64, obj: Any): Message {
+        let msg = objectPool.get()
+        msg.what = what
+        msg.target = h
+        msg.obj = obj
+        return msg
+    }
+
+    
+    public func sendToTarget(){
+        this.target?.sendMessage(this)
+    }
+    
     func recycleUnchecked(): Unit {
-        this.what = 0
-        this.obj = ()
-        this.callback = None
-        this.target = None
+        objectPool.put(this)
     }
 
     public operator func ==(that: Message): Bool {
@@ -73,4 +114,5 @@ public class Message <: Comparable<Message>{
         }
     }
 }
+
 

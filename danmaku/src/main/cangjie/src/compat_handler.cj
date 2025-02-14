@@ -10,7 +10,7 @@ public class RunnableRecords <: Equatable<RunnableRecords> {
     var call: () -> Unit
 
     public init() {
-        call = unsafe {zeroValue<() -> Unit>()}
+        call = {=>}
     }
     public init(run: () -> Unit) {
         call = run
@@ -57,16 +57,18 @@ sealed abstract class Handler {
 
     protected func handleMessage(msg: Message): Unit
 
-    protected open func sendMessage(msg: Message): Unit {
+    func sendMessage(msg: Message): Unit {
         sendMessageDelayed(msg, 0)
     }
 
     protected open func sendEmptyMessageDelayed(what: Int64, delay: Int64): Unit {
-        sendMessageDelayed(Message(what: what), delay)
+        let msg = Message.obtain()
+        msg.what = what
+        sendMessageDelayed(msg, delay)
     }
 
     protected open func sendEmptyMessage(what: Int64): Unit {
-        sendMessage(Message(what: what))
+        sendEmptyMessageDelayed(what, 0)
     }
 
     // 延迟发送消息
@@ -85,7 +87,8 @@ sealed abstract class Handler {
     }
 
     private static func getPostMessage(r: RunnableRecords): Message {
-        let m = Message(what: 0)
+        let m = Message.obtain()
+        m.what = 0
         m.callback = r
         return m
     }
@@ -101,6 +104,12 @@ sealed abstract class Handler {
     protected func removeCallbacksAndMessages(): Unit {
         this.mQueue.removeCallbacksAndMessages(this)
     }
+
+    public func obtainMessage(what: Int64, obj: Any): Message {
+        return Message.obtain(this, what, obj)
+    }
+
+
 }
 
 

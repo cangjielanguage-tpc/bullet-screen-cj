@@ -3,6 +3,7 @@ package ohos_app_cangjie_entry
 internal import ohos.base.LengthProp
 internal import ohos.base.Color
 internal import ohos.component.Column
+internal import ohos.component.VerticalAlign
 internal import ohos.component.ViewBuilder// 宏依赖
 internal import ohos.component.LegalCallCheck// 宏依赖
 import ohos.state_manage.ViewStackProcessor  // 宏依赖
@@ -35,20 +36,37 @@ import ohos.state_macro_manage.r
 import ohos.hilog.*
 import std.collection.*
 import std.math.*
+import std.runtime.*
 import encoding.json.JsonValue
 import ohos.router.Router
+import ohos.prompt_action.*
 
 @Entry
 @Component
 class Index {
     func build() {
-        Row() {
             Column {
-                Button("弹幕LLT用例")
-                .onClick({ ent =>
-                        Router.push(url: "MyView")
+                Row{
+
+                    Button("弹幕LLT用例")
+                    .onClick({ ent =>
+                            Router.push(url: "MyView")
+                        })
+                }
+                Row {
+                    Button("MemoryInfo.maxHeapSize")
+                    .onClick({ ent =>
+                        PromptAction.showToast(message: "------------------- ret = ${MemoryInfo.maxHeapSize / 1024 / 1024}MB")
                     })
+                }
+                Row {
+                    Button("MemoryInfo.allocatedHeapSize")
+                    .onClick({ ent =>
+                        PromptAction.showToast(message: "------------------- ret = ${MemoryInfo.allocatedHeapSize/ 1024} KB")
+                    })
+                }
             }
-        }
+            .width(100.percent)
+            .height(100.percent)
     }
 }

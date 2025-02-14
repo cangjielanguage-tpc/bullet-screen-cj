@@ -29,8 +29,7 @@ public class DrawHandler <: Handler {
     public var drawTask: ?IDrawTask = None
     private var mDanmakuView: ?IDanmakuViewController = None
     private var mDanmakusVisible: Bool = true
-    private var mDisp: AbsDisplayer<DanmakuCanvas2D, String> = unsafe { zeroValue<AbsDisplayer<DanmakuCanvas2D, String>>(
-    ) }
+    private var mDisp: ?AbsDisplayer<DanmakuCanvas2D, String> = None
     var mRenderingState: RenderingState = RenderingState()
     private var mDrawTimes: LinkedList<Int64> = LinkedList<Int64>()
     private var mThread: ?Future<Unit> = None
@@ -47,8 +46,12 @@ public class DrawHandler <: Handler {
     private var mInSyncAction: Bool = false
     var mInWaitingState: Bool = false
     private var mNonBlockModeEnable: Bool = false
+
+    let thread: ExecutorService
+
     init(looper: MessageLooper, view: IDanmakuViewController, danmakuVisibile: Bool) {
         super(looper)
+        this.thread = ExecutorService.new()
         this.bindView(view)
         if (!danmakuVisibile) {
             this.hideDanmakus(false)
@@ -235,7 +238,7 @@ public class DrawHandler <: Handler {
         }
         return v
     }
-    private func casePAUSE(){
+    private func casePAUSE(){  // 暂停时 TODO
         this.removeMessages(RESUME)
         this.removeMessages(UPDATE)
         this.drawTask?.onPlayStateChanged(PLAY_STATE_PAUSE)
@@ -365,12 +368,12 @@ public class DrawHandler <: Handler {
     private func createDrawTask(useDrwaingCache: Bool, timer: DanmakuTimer, width: Int64, height: Int64,
         taskListener: TaskListener): IDrawTask {
         this.mDisp = this.mContext.getOrThrow().getDisplayer()
-        this.mDisp.setSize(Float64(width), Float64(height))
-        this.mDisp.resetSlopPixel(this.mContext.getOrThrow().scaleTextSize)
+        this.mDisp?.setSize(Float64(width), Float64(height))
+        this.mDisp?.resetSlopPixel(this.mContext.getOrThrow().scaleTextSize)
         let task: IDrawTask = DrawTask(timer, this.mContext(), taskListener)
         task.setParser(this.mParser())
         task.prepare()
-        this.sendMessage(Message(what: NOTIFY_DISP_SIZE_CHANGED, obj: false))
+        obtainMessage(NOTIFY_DISP_SIZE_CHANGED, false).sendToTarget()
         return task
     }
 
@@ -380,16 +383,18 @@ public class DrawHandler <: Handler {
         this.removeMessages(UPDATE)
         this.removeMessages(RESUME)
         this.removeMessages(SEEK_POS)
-        this.sendMessage(Message(what: SEEK_POS, obj: ms))
+        obtainMessage(SEEK_POS, ms).sendToTarget()
     }
 
     public func addDanmaku(item: BaseDanmaku): Unit {
-        if (this.drawTask.isSome()) {
-            item.flags = this.mContext().mGlobalFlagValues
-            item.setTimer(this.timer)
-            this.drawTask().addDanmaku(item)
-            this.sendEmptyMessage(NOTIFY_RENDERING)
-        }
+        this.thread.execute({=>
+            if (this.drawTask.isSome()) {
+                item.flags = this.mContext().mGlobalFlagValues
+                item.setTimer(this.timer)
+                this.drawTask().addDanmaku(item)
+                this.sendEmptyMessage(NOTIFY_RENDERING)
+            }
+        })
     }
 
     public func invalidateDanmaku(item: BaseDanmaku, remeasure: Bool): Unit {
@@ -420,7 +425,7 @@ public class DrawHandler <: Handler {
         this.mDanmakusVisible = true
         this.removeMessages(SHOW_DANMAKUS)
         this.removeMessages(HIDE_DANMAKUS)
-        this.sendMessage(Message(what: SHOW_DANMAKUS, obj: position))
+        obtainMessage(SHOW_DANMAKUS, position).sendToTarget()
     }
 
     public func hideDanmakus(quitDrawTask: Bool): Int64 {
@@ -430,7 +435,7 @@ public class DrawHandler <: Handler {
         this.mDanmakusVisible = false
         this.removeMessages(SHOW_DANMAKUS)
         this.removeMessages(HIDE_DANMAKUS)
-        this.sendMessage(Message(what: HIDE_DANMAKUS, obj: quitDrawTask))
+        obtainMessage(HIDE_DANMAKUS, quitDrawTask).sendToTarget()
         return this.timer.currMillisecond
     }
 
@@ -476,8 +481,9 @@ public class DrawHandler <: Handler {
                 } while (false)
             }
         }
-        this.mDisp.setExtraData(canvas)
-        this.mRenderingState.set(this.drawTask().draw(this.mDisp))
+        this.mDisp?.setExtraData(canvas)
+
+        this.mRenderingState.set(this.drawTask().draw(this.mDisp.getOrThrow())) //TODO 类型判断
         this.recordRenderingTime()
         return this.mRenderingState
     }
@@ -561,16 +567,16 @@ public class DrawHandler <: Handler {
     }
 
     public func getDisplayer(): IDisplayer {
-        return this.mDisp
+        return this.mDisp.getOrThrow()
     }
 
     public func notifyDispSizeChanged(width: Float64, height: Float64): Unit {
-        // if (this.mDisp == null) {
-        //   return
-        // }
-        if (this.mDisp.getWidth() != width || this.mDisp.getHeight() != height) {
-            this.mDisp.setSize(width, height)
-            this.sendMessage(Message(what: NOTIFY_DISP_SIZE_CHANGED, obj: true))
+         if (this.mDisp.isNone()) {
+           return
+         }
+        if (this.mDisp.getOrThrow().getWidth() != width || this.mDisp.getOrThrow().getHeight() != height) {
+            this.mDisp?.setSize(width, height)
+            obtainMessage(NOTIFY_DISP_SIZE_CHANGED, true).sendToTarget()
         }
     }
 

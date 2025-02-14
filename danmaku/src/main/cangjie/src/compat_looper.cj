@@ -56,7 +56,7 @@ public class DelayedMessageQueue {
     public func enqueueMessage(msg: Message , delayMillis: Int64): Unit {
         lock.lock();
         try {
-            let now = DateTime.now().toUnixTimeStamp().toMilliseconds()
+            let now = SystemClock.uptimeMillis()
             msg.when = now + delayMillis;
             set.add(msg);
             lock.notify(notEmpty); // 唤醒等待的线程
@@ -74,16 +74,17 @@ public class DelayedMessageQueue {
                 while (set.isEmpty()) {
                     lock.wait(notEmpty)
                 }
-
                 let msg: Message = set.peek()
-                let now = DateTime.now().toUnixTimeStamp().toMilliseconds()
+                let now = SystemClock.uptimeMillis()
                 let delay = msg.when - now;
                 // 消息已到期，直接返回
                 if (delay <= 0) {
                     return set.poll();
                 }
                 // 等待至消息到期（避免忙等待）
-                lock.wait(notEmpty, timeout: Duration.millisecond * delay);
+                if (delay > 10) {  // 经测试等待1毫秒时，到占用cpu执行，平均耗时12毫秒，sleep同样耗时，大于10毫秒时才会等待， java有 nativePollOnce 直接唤醒方法， 类似Epoll。
+                    lock.wait(notEmpty, timeout: Duration.millisecond);
+                }
             }
             return None
         } finally {
@@ -94,14 +95,10 @@ public class DelayedMessageQueue {
     public func removeCallbacksAndMessages(h: Handler): Unit {
         synchronized(lock) {
             set.removeIf({k =>
-                if (k.target.isSome()) {
-                    if (refEq(k.target.getOrThrow(), h)) {
-                        return true
-                    }
-                    return false
-                } else {
-                    return false
+                if (refEq(k.target.getOrThrow(), h)) {
+                    return true
                 }
+                return false
             })
         }
     }
@@ -109,9 +106,9 @@ public class DelayedMessageQueue {
     public func removeMessages(h: Handler, r: RunnableRecords): Unit {
         synchronized(lock) {
             set.removeIf({k =>
-                match ((k.target, k.callback)) {
-                    case (Some(hal), Some(w)) =>
-                        return refEq(hal, h) && refEq(w, r)
+                match (k.callback) {
+                    case Some(w) =>
+                        return refEq(k.target.getOrThrow(), h) && refEq(w, r)
                     case _ => false
                 }
             })
@@ -121,10 +118,7 @@ public class DelayedMessageQueue {
     public func removeMessages(h: Handler, what: Int64): Unit {
         synchronized(lock) {
             set.removeIf({k =>
-                match (k.target) {
-                    case Some(hal) => return refEq(hal, h) && k.what == what
-                    case _ => false
-                }
+                return refEq(k.target.getOrThrow(), h) && k.what == what
             })
         }
     }
@@ -183,7 +177,7 @@ class MessageLooper {
         let queue: DelayedMessageQueue = me.mQueue
         while(true) {
             if(let Some(msg: Message) <- queue.next()) {
-                msg.target.getOrThrow().dispatchMessage(msg)
+                msg.target?.dispatchMessage(msg)
                 msg.recycleUnchecked()
             } else {
                 break
