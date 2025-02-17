@@ -147,6 +147,7 @@ public class DanmakuView {
             })
             .onDisAppear({=>
                 PromptAction.showToast(message: "ret = onDisAppear")
+                this.release()
             })
     }
 

@@ -248,7 +248,7 @@ public class Danmakus <: IDanmakus {
             index ++
             let action: Int64 = consumer.accept(v)
             if (action == ACTION_BREAK) {
-                return
+                break
             } else if (action == ACTION_REMOVE) {
                 this.items.remove(index)
                 index--
@@ -257,10 +257,9 @@ public class Danmakus <: IDanmakus {
                 this.items.remove(index)
                 index--
                 mSize.fetchSub(1)
-                return
+                break
             }
         }
-
         consumer.after()
     }
 }

@@ -16,6 +16,7 @@ public class HandlerThread {
     let isAlive = AtomicBool(false)
     let multiLock: MultiConditionMonitor = MultiConditionMonitor()
     let notEmpty: ConditionID
+    var thread: ?Future<Unit> = None
     public init(name: String, priority: Int32) {
         this.name = name
         this.mPriority = priority
@@ -28,7 +29,7 @@ public class HandlerThread {
 
     public func run() {
         isAlive.store(true)
-        spawn {
+        this.thread = spawn {
             try {
                 this.mTid = Thread.currentThread.id
                 Thread.currentThread.name = this.name
@@ -64,6 +65,7 @@ public class HandlerThread {
             v.mQuit = true
             v.mQueue.quit()
         }
+        this.thread?.cancel()
         return false
     }
 
