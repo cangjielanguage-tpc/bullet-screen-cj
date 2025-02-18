@@ -128,9 +128,9 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
             return ACTION_CONTINUE
         }
 
-//        if (drawItem.isLate()) {
-//            return ACTION_BREAK
-//        }
+        if (drawItem.isLate()) {
+            return ACTION_BREAK
+        }
 
         if (drawItem.getType() == BaseDanmaku.TYPE_SCROLL_RL) {
             // 同屏弹幕密度只对滚动弹幕有效
