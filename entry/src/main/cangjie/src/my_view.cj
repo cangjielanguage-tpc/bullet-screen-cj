@@ -61,6 +61,8 @@ class MyView {
     private var path: String = ""
     @State
     var bottomHeight: Float64 = 0.0
+    @State
+    var btnHeight: Float64 = 0.0
     var display: ?Display = Option<Display>.None
     var timer: ?Timer = Option<Timer>.None
 
@@ -256,7 +258,7 @@ class MyView {
                     Row() {
                         this.BtuView()
                     }
-                    .position(x: 0, y: 570)
+                    .height(btnHeight)
                 }
             }
             .width(100.percent)
@@ -269,6 +271,7 @@ class MyView {
                 old, new =>
                     let bottomHeight = round(px2vp(new.height.px).getOrThrow().value)
                     let BtuViewHeight = (bottomHeight / 2.0) - 193.84
+                    btnHeight = BtuViewHeight
                     this.bottomHeight = if (BtuViewHeight >= 195.0) {BtuViewHeight} else { 195.0 }
             })
         }

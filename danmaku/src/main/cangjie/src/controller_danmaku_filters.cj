@@ -4,14 +4,12 @@
 
 package danmaku
 
-public interface IDanmakuFilter<T> {
+public interface IDanmakuFilter {
     /*
      * 是否过滤
      */
     func filter(danmaku: ?BaseDanmaku, index: Int64, totalsizeInScreen: Int64, timer: DanmakuTimer,
         fromCachingTask: Bool, config: DanmakuContext): Bool
-
-    func setData(data: ?T): Unit
 
     func reset(): Unit
 
@@ -20,7 +18,10 @@ public interface IDanmakuFilter<T> {
     func hashCode(): Int64
 }
 
-public abstract class BaseDanmakuFilter<T> <: IDanmakuFilter<T> {
+public abstract class BaseDanmakuFilter<T> <: IDanmakuFilter {
+
+    public func setData(data: ?T): Unit
+
     public open override func clear(): Unit {}
 
     @OverflowWrapping
@@ -488,16 +489,16 @@ public class DanmakuFilters {
     public static let TAG_PRIMARY_CUSTOM_FILTER: String = "2000_Primary_Custom_Filter"
     public static let filterException: Exception = Exception("not support this filter tag")
 
-    private var filters: HashMap<String, Any> = HashMap<String, Any>()
-    private var filtersSecondary: HashMap<String, Any> = HashMap<String, Any>()
-    var mFilterArray: ArrayList<Any> = ArrayList<Any>()
-    var mFilterArraySecondary: ArrayList<Any> = ArrayList<Any>()
+    private var filters: HashMap<String, IDanmakuFilter> = HashMap<String, IDanmakuFilter>()
+    private var filtersSecondary: HashMap<String, IDanmakuFilter> = HashMap<String, IDanmakuFilter>()
+    var mFilterArray: ArrayList<IDanmakuFilter> = ArrayList<IDanmakuFilter>()
+    var mFilterArraySecondary: ArrayList<IDanmakuFilter> = ArrayList<IDanmakuFilter>()
 
     public func filter(danmaku: ?BaseDanmaku, index: Int64, totalsizeInScreen: Int64, timer: DanmakuTimer,
         fromCachingTask: Bool, context: DanmakuContext): Unit {
         if (let Some(v) <- danmaku) {
             for (f in mFilterArray) {
-                let filtered: Bool = (f as IDanmakuFilter<Any>)().filter(v, index, totalsizeInScreen, timer,
+                let filtered: Bool = f.filter(v, index, totalsizeInScreen, timer,
                     fromCachingTask, context)
                 v.filterResetFlag = context.mGlobalFlagValues.FILTER_RESET_FLAG
                 if (filtered) {
@@ -511,7 +512,7 @@ public class DanmakuFilters {
         willHit: Bool, context: DanmakuContext): Bool {
         if (let Some(v) <- danmaku) {
             for (f in mFilterArraySecondary) {
-                let filtered: Bool = (f as IDanmakuFilter<Any>)().filter(v, lines, totalsizeInScreen, timer, willHit,
+                let filtered: Bool = f.filter(v, lines, totalsizeInScreen, timer, willHit,
                     context)
                 v.filterResetFlag = context.mGlobalFlagValues.FILTER_RESET_FLAG
                 if (filtered) {
@@ -522,12 +523,12 @@ public class DanmakuFilters {
         return false
     }
 
-    public func get(tag: String): ?Any {
+    public func get(tag: String): ?IDanmakuFilter {
         return get(tag, true)
     }
 
-    public func get(tag: String, primary: Bool): ?Any {
-        var f: ?Any = if (primary) {
+    public func get(tag: String, primary: Bool): ?IDanmakuFilter {
+        var f: ?IDanmakuFilter = if (primary) {
             filters.get(tag)
         } else {
             filtersSecondary.get(tag)
@@ -538,16 +539,16 @@ public class DanmakuFilters {
         return f
     }
 
-    public func registerFilter(tag: String): ?Any {
+    public func registerFilter(tag: String): ?IDanmakuFilter {
         return registerFilter(tag, true)
     }
 
-    public func registerFilter(tag: String, primary: Bool): ?Any {
+    public func registerFilter(tag: String, primary: Bool): ?IDanmakuFilter {
         if (tag == "") {
             return None
         }
         let size = filters.size
-        var filter: ?Any = filters.get(tag)
+        var filter: ?IDanmakuFilter = filters.get(tag)
         if (filter.isNone()) {
             if (TAG_TYPE_DANMAKU_FILTER == tag) {
                 let f = TypeDanmakuFilter()
@@ -623,12 +624,12 @@ public class DanmakuFilters {
     }
 
     public func unregisterFilter(tag: String, primary: Bool): Unit {
-        let f: ?Any = if (primary) {
+        let f: ?IDanmakuFilter = if (primary) {
             filters.remove(tag)
         } else {
             filtersSecondary.remove(tag)
         }
-        if (let Some(v) <- f as IDanmakuFilter<Any>) {
+        if (let Some(v: IDanmakuFilter) <- f) {
             v.clear()
             if (primary) {
                 let values = filters.values()
@@ -654,36 +655,28 @@ public class DanmakuFilters {
 
     public func clear(): Unit {
         for (f in mFilterArray) {
-            if (let Some(v) <- f as IDanmakuFilter<Any>) {
-                v.clear()
-            }
+            f.clear()
         }
         for (k in mFilterArraySecondary) {
-            if (let Some(v) <- k as IDanmakuFilter<Any>) {
-                v.clear()
-            }
+            k.clear()
         }
     }
 
     public func reset(): Unit {
         for (f in mFilterArray) {
-            if (let Some(v) <- f as IDanmakuFilter<Any>) {
-                v.reset()
-            }
+            f.reset()
         }
         for (k in mFilterArraySecondary) {
-            if (let Some(v) <- k as IDanmakuFilter<Any>) {
-                v.reset()
-            }
+            k.reset()
         }
     }
 
     public func release(): Unit {
         clear()
         filters.clear()
-        mFilterArray = ArrayList<Any>()
+        mFilterArray = ArrayList<IDanmakuFilter>()
         filtersSecondary.clear()
-        mFilterArraySecondary = ArrayList<Any>()
+        mFilterArraySecondary = ArrayList<IDanmakuFilter>()
     }
 
 }

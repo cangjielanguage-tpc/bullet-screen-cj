@@ -211,10 +211,10 @@ public class DanmakuContext {
         return this
     }
 
-    private func setFilterData(tag: String, data: Any, primary!: Bool = true): Unit {
-        let filter: ?Any = mDanmakuFilters.get(tag, primary)
+    private func setFilterData<T>(tag: String, data: T, primary!: Bool = true): Unit {
+        let filter: ?IDanmakuFilter = mDanmakuFilters.get(tag, primary)
         if (let Some(v) <- filter) {
-            if (let Some(fil) <- v as IDanmakuFilter<Any>) {
+            if (let Some(fil) <- v as BaseDanmakuFilter<T>) {
                 fil.setData(data)
             }
         }
@@ -578,7 +578,7 @@ public class DanmakuContext {
      * @return
      */
     public func setMaximumLines(pairs: HashMap<Int64, Int64>): DanmakuContext {
-        mIsMaxLinesLimited = pairs.isEmpty()
+        mIsMaxLinesLimited = !(pairs.isEmpty())
         if (pairs.isEmpty()) {
             mDanmakuFilters.unregisterFilter(DanmakuFilters.TAG_MAXIMUN_LINES_FILTER, false)
         } else {
