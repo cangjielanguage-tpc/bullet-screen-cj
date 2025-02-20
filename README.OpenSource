@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "DanmakuFlameMaster",
+        "License": "Apache-2.0",
+        "License File": " LICENSE ",
+        "Version Number": "v0.9.25",
+        "Owner" : "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/bilibili/DanmakuFlameMaster",
+        "Description": "Android开源弹幕引擎·烈焰弹幕使 ～"
+    },
+    {
+        "Name": "ohos_danmaku_flame_master",
+        "License": "Apache-2.0",
+        "License File": " LICENSE ",
+        "Version Number": "2.1.1-rc.1",
+        "Owner" : "openharmony-sig",
+        "Upstream URL": "https://gitee.com/openharmony-sig/ohos_danmaku_flame_master",
+        "Description": "DanmakuFlameMaster是一款弹幕框架，支持发送纯文本弹幕、设置弹幕在屏幕的显示区域、控制弹幕播放状态等功能"
+    }
+]
