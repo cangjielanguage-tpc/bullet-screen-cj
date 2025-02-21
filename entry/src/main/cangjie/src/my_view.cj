@@ -43,6 +43,9 @@ import std.time.Duration
 import ohos.component.FontWeight
 import ohos.component.TextAlign
 import ohos.component.TouchType
+import ohos.image.PixelMap
+import ohos.image.createPixelMap
+import ohos.image.createImageSource
 
 @Entry
 @Component
@@ -58,7 +61,8 @@ class MyView {
     var mContext: DanmakuContext = DanmakuContext.create()
     private var mParser: ?BaseDanmakuParser = None
     private var mCacheStufferAdapter: Proxy = Pro()
-    private var path: String = ""
+    @State
+    var pixel: ?Array<PixelMap> = Option<Array<PixelMap>>.None
     @State
     var bottomHeight: Float64 = 0.0
     @State
@@ -110,6 +114,7 @@ class MyView {
 
     protected func aboutToAppear() {
         this.viewInit()
+        this.pixel = savaGifToca("RRR.gif")
     }
 
     @Builder
@@ -198,9 +203,9 @@ class MyView {
                         }
                     }
                 )
-            //            this.buildText(7, { =>
-            //              this.addDanmaKuShowGif(false)
-            //            })
+                this.buildText(7, { i =>
+                  addDanmaKuShowGif(false)
+                })
             }
             .opacity(0.8)
             .width(100.percent)
@@ -240,6 +245,25 @@ class MyView {
         danmaku.textShadowColor = 0
         danmaku.underlineColor = 0xff00ff00
         this.model.addDanmaku(danmaku)
+    }
+
+    private func addDanmaKuShowGif(isLive: Bool): Unit {
+        let danmaku: BaseDanmaku = this.mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL).getOrThrow()
+        danmaku.setPixelMapList(ArrayList<PixelMap>(pixel.getOrThrow()))
+        danmaku.setIsAnimation(true)
+        danmaku.text = "<img src=\"resource://RAWFILE/RRR.gif\" width=\"" + "99" + "\" height=\"" + "99" + "\"/>"
+        danmaku.padding = 0.0
+        danmaku.priority = 1 // 一定会显示, 一般用于本机发送的弹幕
+        danmaku.isLive = isLive
+        danmaku.setTime(this.model.getCurrentTime() + 1200)
+        danmaku.textColor = 0
+        this.model.addDanmaku(danmaku)
+    }
+
+    private func savaGifToca(gifName: String): Array<PixelMap> {
+        let resourceManager = ResourceManager.getResourceManager(getStageContext(globalAbilityContext.getOrThrow()))
+        let value: Array<UInt8> = resourceManager.getRawFileContent(gifName)
+        return createImageSource(value).createPixelMapList()
     }
 
     func build() {
