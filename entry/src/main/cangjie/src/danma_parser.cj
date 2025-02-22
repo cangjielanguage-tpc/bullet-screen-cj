@@ -9,6 +9,8 @@ import ohos.hilog.*
 import encoding.json.*
 import std.convert.*
 import std.sync.*
+import std.unicode.UnicodeExtension
+import std.convert.*
 
 func printlnException(arr: Array<StackTraceElement> ): String {
     let bugs = StringBuilder()
@@ -75,14 +77,21 @@ class MyDanmakuParser <: BaseDanmakuParser {
                                     let value = pValue.asInt().getValue()
                                     danma.textShadowColor = UInt32(value)
                                 }
-                                if (let Some(pValue) <- obj.get("text")){
-                                    let value = pValue.asString().getValue()
-//                                    danma.text = value
-                                    DanmakuUtils.fillText(danma, value)
-                                }
                                 if (let Some(pValue) <- obj.get("textSize")){
                                     let value = pValue.asInt().getValue()
                                     danma.index = value
+                                }
+                                if (let Some(pValue) <- obj.get("text")){
+                                    let value = pValue.asString().getValue()
+//                                    danma.text = value
+                                    // TODO  特殊弹幕解析
+                                    if (typ == BaseDanmaku.TYPE_SPECIAL && value.startsWith("[") && value.endsWith("]")) {
+                                        let bytes = value.toRuneArray()
+                                        let newText = String(bytes[1..bytes.size-1])
+                                        parseSpecial(danma, newText)
+                                    } else {
+                                        DanmakuUtils.fillText(danma, value)
+                                    }
                                 }
                                 item = danma
                             }
@@ -102,6 +111,108 @@ class MyDanmakuParser <: BaseDanmakuParser {
         }
 
         return result
+    }
+
+    func parseSpecial(item: BaseDanmaku, text: String): Unit {
+        let textArr = text.split(",")
+        for (i in 0..textArr.size) {
+            textArr[i] = textArr[i].trim()
+        }
+        if (textArr.size < 5 || textArr[4].isEmpty()) {
+            return // TODO null
+        }
+        DanmakuUtils.fillText(item, textArr[4])
+        var beginX = parseNumber(textArr[0])
+        var beginY = parseNumber(textArr[1])
+        var endX = beginX
+        var endY = beginY
+        let alphaArr = textArr[2].split("-")
+        var beginAlpha = Int64(Float64(AlphaValue.MAX) * parseNumber(alphaArr[0]));
+        var endAlpha = beginAlpha;
+        if (alphaArr.size > 1) {
+            endAlpha = Int64(Float64(AlphaValue.MAX) * parseNumber(alphaArr[1]));
+        }
+        var alphaDuraion =  Int64(parseNumber(textArr[3]) * 1000.0);
+        var translationDuration = alphaDuraion;
+        var translationStartDelay = 0;
+        var rotateY = 0.0
+        var rotateZ = 0.0;
+        if (textArr.size >= 7) {
+            rotateZ = parseNumber(textArr[5]);
+            rotateY = parseNumber(textArr[6]);
+        }
+        if (textArr.size >= 11) {
+            endX = parseNumber(textArr[7]);
+            endY = parseNumber(textArr[8]);
+            if (""!=(textArr[9])) {
+                translationDuration = Int64.parse(textArr[9]);
+            }
+            if (""!=(textArr[10])) {
+                translationStartDelay = Int64(parseNumber(textArr[10]));
+            }
+        }
+        if (textArr[0].contains(".")) {
+            beginX *= Float64(DanmakuFactory.BILI_PLAYER_WIDTH);
+        }
+        if (textArr[1].contains(".")) {
+            beginY *= Float64(DanmakuFactory.BILI_PLAYER_HEIGHT);
+        }
+        if (textArr.size >= 8 && textArr[7].contains(".")) {
+            endX *= Float64(DanmakuFactory.BILI_PLAYER_WIDTH);
+        }
+        if (textArr.size >= 9 && textArr[8].contains(".")) {
+            endY *= Float64(DanmakuFactory.BILI_PLAYER_HEIGHT);
+        }
+        item.duration = DanmakuDuration(alphaDuraion);
+        item.rotationZ = rotateZ;
+        item.rotationY = rotateY;
+        this.mContext.getOrThrow().mDanmakuFactory.fillTranslationData(item, beginX,
+                            beginY, endX, endY, translationDuration, translationStartDelay, mDispScaleX, mDispScaleY);
+        this.mContext.getOrThrow().mDanmakuFactory.fillAlphaData(item, beginAlpha, endAlpha, alphaDuraion);
+        if (textArr.size >= 12) {
+            // 是否有描边
+            if (!textArr[11].isEmpty() && "true" == textArr[11].toAsciiLower()) {
+                item.textShadowColor = 0;
+            }
+        }
+        if (textArr.size >= 13) {
+            //TODO 字体 textArr[12]
+        }
+        if (textArr.size >= 14) {
+            // Linear.easeIn or Quadratic.easeOut
+            if (let Some(v) <- (item as SpecialDanmaku)) {
+                v.isQuadraticEaseOut = ("0" == textArr[13])
+            }
+        }
+        if (textArr.size >= 15) {
+            // 路径数据
+            if ("" != (textArr[14])) {
+                var motionPathString: String = textArr[14][1..]
+                if (!motionPathString.isEmpty()) {
+                    let pointStrArray = motionPathString.split("L");
+                    if (pointStrArray.size > 0) {
+                        let points = Array<Array<Float64>>(pointStrArray.size, {i=> Array<Float64>(2, item: 0.0)})
+                        for (i in 0..pointStrArray.size) {
+                            let pointArray = pointStrArray[i].split(",");
+                            if (pointArray.size >= 2) {
+                                points[i][0] = parseNumber(pointArray[0]);
+                                points[i][1] = parseNumber(pointArray[1]);
+                            }
+                        }
+                        DanmakuFactory.fillLinePathData(item, points, mDispScaleX,
+                                mDispScaleY);
+                    }
+                }
+            }
+        }
+    }
+
+    func parseNumber(text: String): Float64 {
+        if (text.contains(".")) {
+            Float64.parse(text)
+        } else {
+            Float64(Int64.parse(text))
+        }
     }
 
     public func setDisplayer(disp: IDisplayer) : BaseDanmakuParser {

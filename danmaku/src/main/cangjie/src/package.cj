@@ -22,10 +22,9 @@ internal import std.collection.concurrent.NonBlockingQueue
 internal import std.convert.*
 internal import std.math.*
 internal import std.sync.*
-//internal import std.os.posix.nice
+internal import ohos.concurrency.launch
 
 
-// DrawHandler class definitions
 let START: Int64 = 1
 let UPDATE: Int64 = 2
 let RESUME: Int64 = 3

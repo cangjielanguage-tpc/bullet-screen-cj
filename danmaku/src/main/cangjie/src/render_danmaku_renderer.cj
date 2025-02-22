@@ -127,11 +127,9 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
             || (drawItem.priority == 0 && drawItem.isFiltered())) { // isFiltered 就表示已经被过滤掉了 0表示低优先级 大于0不会被过滤
             return ACTION_CONTINUE
         }
-
         if (drawItem.isLate()) {
             return ACTION_BREAK
         }
-
         if (drawItem.getType() == BaseDanmaku.TYPE_SCROLL_RL) {
             // 同屏弹幕密度只对滚动弹幕有效
             if (let Some(v) <- renderingState) {
@@ -153,12 +151,12 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
         if (let Some(v) <- self.mDanmakusRetainer) {
             v.fix(drawItem, disp.getOrThrow(), self.mVerifier)
         }
-
         // draw
         if (drawItem.isShown()) {
             if (drawItem.lines.isNone() && drawItem.getBottom() > disp.getOrThrow().getHeight()) {
                 return ACTION_CONTINUE // skip bottom outside danmaku
             }
+
             let renderingType: Int64 = drawItem.draw(disp.getOrThrow())
             if (let Some(v) <- renderingState) {
                 if (renderingType == CACHE_RENDERING) {
