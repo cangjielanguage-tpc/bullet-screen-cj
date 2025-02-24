@@ -82,9 +82,7 @@ public class DelayedMessageQueue {
                     return set.poll();
                 }
                 // 等待至消息到期（避免忙等待）
-                if (delay > 10) {  // 经测试等待1毫秒时，到占用cpu执行，平均耗时12毫秒，sleep同样耗时，大于10毫秒时才会等待， java有 nativePollOnce 直接唤醒方法， 类似Epoll。
-                    lock.wait(notEmpty, timeout: Duration.millisecond);
-                }
+                lock.wait(notEmpty, timeout: Duration.millisecond * delay);
             }
             return None
         } finally {

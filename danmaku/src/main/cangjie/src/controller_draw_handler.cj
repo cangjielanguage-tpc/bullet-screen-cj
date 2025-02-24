@@ -27,12 +27,12 @@ public class DrawHandler <: Handler {
     private var timer: DanmakuTimer = DanmakuTimer()
     private var mParser: ?BaseDanmakuParser = None
     public var drawTask: ?IDrawTask = None
-    private var mDanmakuView: ?IDanmakuViewController = None
+    private let mDanmakuView: IDanmakuViewController
     private var mDanmakusVisible: Bool = true
     private var mDisp: ?AbsDisplayer<DanmakuCanvas2D, String> = None
     var mRenderingState: RenderingState = RenderingState()
     private var mDrawTimes: LinkedList<Int64> = LinkedList<Int64>()
-    private var mThread: ?Future<Unit> = None
+    private var mThread: ?Future<Unit> = None // TODO see
     private var mUpdateInSeparateThread: Bool = false
 
     private var mCordonTime: Int64 = 30
@@ -45,22 +45,28 @@ public class DrawHandler <: Handler {
     private var mRemainingTime: Int64 = 0
     private var mInSyncAction: Bool = false
     var mInWaitingState: Bool = false
+    var mPauseState: ?Bool = None
     private var mNonBlockModeEnable: Bool = false
 
-    let thread: ExecutorService
+    var backAnimator: AnimatorResult = unsafe {zeroValue<AnimatorResult>()}
 
     init(looper: MessageLooper, view: IDanmakuViewController, danmakuVisibile: Bool) {
         super(looper)
-        this.thread = ExecutorService.new()
-        this.bindView(view)
+        this.mDanmakuView = view
         if (!danmakuVisibile) {
             this.hideDanmakus(false)
         }
         this.mDanmakusVisible = danmakuVisibile
-    }
-
-    private func bindView(view: IDanmakuViewController) {
-        this.mDanmakuView = view
+        this.backAnimator = AnimatorResult(AnimatorOptions(
+                          duration: 5000,
+                          easing: "ease",
+                          delay: 13,
+                          fill: AnimatorFill.None,
+                          direction: AnimatorDirection.Normal,
+                          iterations: -1,
+                          begin: 0.0,
+                          end: 1.0
+                        ))
     }
 
     public func enableNonBlockMode(enable: Bool): Unit {
@@ -109,9 +115,7 @@ public class DrawHandler <: Handler {
                 caseRESUME()
             case what == RESUME => 
                 caseRESUME()
-            case what == UPDATE => 
-                caseUPDATE()
-            case what == NOTIFY_DISP_SIZE_CHANGED => 
+            case what == NOTIFY_DISP_SIZE_CHANGED =>
                 caseNOTIFY_DISP_SIZE_CHANGED(msg)
             case what == HIDE_DANMAKUS => 
                 if (caseHIDE_DANMAKUS(msg)) {
@@ -126,9 +130,9 @@ public class DrawHandler <: Handler {
             case what == NOTIFY_RENDERING => 
                 this.notifyRendering()
             case what == UPDATE_WHEN_PAUSED => 
-                if (this.quitFlag && this.mDanmakuView.isSome()) {
+                if (this.quitFlag) {
                     this.drawTask?.requestClear()
-                    this.mDanmakuView?.drawDanmakus()
+                    this.mDanmakuView.drawDanmakus()
                     this.notifyRendering()
                 }
             case what == CLEAR_DANMAKUS_ON_SCREEN => 
@@ -142,7 +146,7 @@ public class DrawHandler <: Handler {
 
     private func casePREPARE(){
         this.mTimeBase = SystemClock.uptimeMillis()
-        if (this.mParser.isNone() || !this.mDanmakuView.getOrThrow().isViewReady()) {
+        if (this.mParser.isNone() || !this.mDanmakuView.isViewReady()) {
             this.sendEmptyMessageDelayed(PREPARE, 100)
         } else {
             this.prepare({ =>
@@ -170,9 +174,7 @@ public class DrawHandler <: Handler {
             }
         }
         if (this.quitFlag) {
-            if (let Some(v) <- this.mDanmakuView) {
-                v.drawDanmakus()
-            }
+            this.mDanmakuView.drawDanmakus()
         }
         this.notifyRendering()
         return resume
@@ -184,6 +186,7 @@ public class DrawHandler <: Handler {
         } else {
             this.pausedPosition = 0
         }
+        this.backAnimator.play()
     }
     private func caseSEEK_POS(msg: Message){
         this.quitFlag = true
@@ -204,19 +207,19 @@ public class DrawHandler <: Handler {
             this.mTimeBase = SystemClock.uptimeMillis() - this.pausedPosition
             this.timer.update(this.pausedPosition)
             this.removeMessages(RESUME)
-            this.sendEmptyMessage(UPDATE)
-            this.drawTask().start()
             this.notifyRendering()
             this.mInSeekingAction = false
-        // this.drawTask?.onPlayStateChanged(PLAY_STATE_PLAYING)  // 不影响 UI 线程
         } else {
             this.sendEmptyMessageDelayed(RESUME, 100)
         }
+        if (let Some(v) <- this.mPauseState) {
+            if (v) {
+                this.backAnimator.play()
+                this.mPauseState = false
+            }
+        }
     }
-    private func caseUPDATE(){
-        // 这里是循环开始播放
-        this.updateInCurrentThread()
-    }
+
     private func caseNOTIFY_DISP_SIZE_CHANGED(msg: Message){
         this.mContext?.mDanmakuFactory.notifyDispSizeChanged(this.mContext())
         if (let Some(updateFlag) <- (msg.obj as Bool)) {
@@ -229,7 +232,7 @@ public class DrawHandler <: Handler {
     }
     private func caseHIDE_DANMAKUS(msg: Message): Bool {
         this.mDanmakusVisible = false
-        this.mDanmakuView?.clear()
+        this.mDanmakuView.clear()
         this.drawTask?.requestClear()
         this.drawTask?.requestHide()
         let v = (msg.obj as Bool).getOrThrow()
@@ -240,8 +243,15 @@ public class DrawHandler <: Handler {
     }
     private func casePAUSE(){  // 暂停时 TODO
         this.removeMessages(RESUME)
-        this.removeMessages(UPDATE)
-        this.drawTask?.onPlayStateChanged(PLAY_STATE_PAUSE)
+        if (let Some(v) <- this.mPauseState) {
+            if (!v) {
+                this.backAnimator.pause()
+                this.mPauseState = true
+            }
+        } else {
+            this.backAnimator.pause()
+            this.mPauseState = true
+        }
     }
     private func caseQUIT(what: Int64){
         if (what == QUIT) {
@@ -251,13 +261,10 @@ public class DrawHandler <: Handler {
         this.syncTimerIfNeeded()
         this.pausedPosition = this.timer.currMillisecond
         if (what == QUIT) {
-            // if (this.drawTask != null) {
             this.drawTask?.quit()
-            // }
-            // if (this.mParser != null) {
             this.mParser?.release()
-            // }
         }
+        this.backAnimator.finish()
     }
 
     private func updateInCurrentThread(): Unit {
@@ -267,11 +274,9 @@ public class DrawHandler <: Handler {
         let startMS: Int64 = SystemClock.uptimeMillis()
         var d: Int64 = this.syncTimer(startMS)
         if (d < 0 && !this.mNonBlockModeEnable) {
-            this.removeMessages(UPDATE)
             return
         }
-        d = this.mDanmakuView().drawDanmakus()
-        this.removeMessages(UPDATE)
+        d = this.mDanmakuView.drawDanmakus()
         if (d > this.mCordonTime2) { // this situation may be cased by ui-thread waiting of DanmakuView, so we sync-timer at once
             this.timer.add(d)
             this.mDrawTimes.clear()
@@ -286,11 +291,6 @@ public class DrawHandler <: Handler {
                 return
             }
         }
-        if (d < this.mFrameUpdateRate) {
-            this.sendEmptyMessageDelayed(UPDATE, this.mFrameUpdateRate - d)
-            return
-        }
-        this.sendEmptyMessage(UPDATE)
     }
 
     private func syncTimer(startMS: Int64): Int64 {
@@ -355,10 +355,13 @@ public class DrawHandler <: Handler {
         if (let Some(v) <- this.drawTask) {
             runnable()
         } else {
-            let danmakuView = this.mDanmakuView()
+            let danmakuView = this.mDanmakuView
             this.drawTask = this.createDrawTask(danmakuView.isDanmakuDrawingCacheEnabled(), this.timer,
                 danmakuView.getViewWidth(), danmakuView.getViewHeight(), Task(this, runnable))
         }
+        this.backAnimator.onframe = { _ =>
+                this.updateInCurrentThread()
+            }
     }
 
     public func isPrepared(): Bool {
@@ -380,21 +383,18 @@ public class DrawHandler <: Handler {
     public func seekTo(ms: Int64): Unit {
         this.mInSeekingAction = true
         this.mDesireSeekingTime = ms
-        this.removeMessages(UPDATE)
         this.removeMessages(RESUME)
         this.removeMessages(SEEK_POS)
         obtainMessage(SEEK_POS, ms).sendToTarget()
     }
 
     public func addDanmaku(item: BaseDanmaku): Unit {
-        this.thread.execute({=>
-            if (this.drawTask.isSome()) {
-                item.flags = this.mContext().mGlobalFlagValues
-                item.setTimer(this.timer)
-                this.drawTask().addDanmaku(item)
-                this.sendEmptyMessage(NOTIFY_RENDERING)
-            }
-        })
+        if (this.drawTask.isSome()) {
+            item.flags = this.mContext().mGlobalFlagValues
+            item.setTimer(this.timer)
+            this.drawTask().addDanmaku(item)
+            this.sendEmptyMessage(NOTIFY_RENDERING)
+        }
     }
 
     public func invalidateDanmaku(item: BaseDanmaku, remeasure: Bool): Unit {
@@ -506,16 +506,10 @@ public class DrawHandler <: Handler {
             synchronized(this.classLock) {
                 this.mDrawTimes.clear()
             }
-        // TODO 异步线程更新
-        // synchronized (drawTask) {
-        //           drawTask.notifyAll();
-        //       }
         } else {
             synchronized(this.classLock) {
                 this.mDrawTimes.clear()
             }
-            this.removeMessages(UPDATE)
-            this.sendEmptyMessage(UPDATE)
         }
         this.mInWaitingState = false
     }
@@ -528,10 +522,8 @@ public class DrawHandler <: Handler {
         this.mInWaitingState = true
         if (dTime == INDEFINITE_TIME) {
             this.removeMessages(NOTIFY_RENDERING)
-            this.removeMessages(UPDATE)
         } else {
             this.removeMessages(NOTIFY_RENDERING)
-            this.removeMessages(UPDATE)
             this.sendEmptyMessageDelayed(NOTIFY_RENDERING, dTime)
         }
     }
@@ -581,15 +573,11 @@ public class DrawHandler <: Handler {
     }
 
     public func removeAllDanmakus(isClearDanmakusOnScreen: Bool): Unit {
-        // if (this.drawTask != null) {
         this.drawTask?.removeAllDanmakus(isClearDanmakusOnScreen)
-        // }
     }
 
     public func removeAllLiveDanmakus(): Unit {
-        // if (this.drawTask != null) {
         this.drawTask?.removeAllLiveDanmakus()
-        // }
     }
 
     public func getCurrentVisibleDanmakus(): ?IDanmakus {
