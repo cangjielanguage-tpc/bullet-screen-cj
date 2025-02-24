@@ -30,21 +30,17 @@ public class HandlerThread {
     public func run() {
         isAlive.store(true)
         this.thread = spawn {
-            try {
-                this.mTid = Thread.currentThread.id
-                Thread.currentThread.name = this.name
-                MessageLooper.prepare()
-                synchronized(multiLock) {
-                    this.mLooper = MessageLooper.myLooper()
-                    multiLock.notify(notEmpty)
-                }
-                //nice(this.mPriority)
-                MessageLooper.loop()
-                this.mTid = -1
-                isAlive.store(false)
-            } catch (e: Exception) {
-                Hilog.error(999, "danmaku4cj", "e: ${e},\n ${printlnException(e.getStackTrace())}")
+            this.mTid = Thread.currentThread.id
+            Thread.currentThread.name = this.name
+            MessageLooper.prepare()
+            synchronized(multiLock) {
+                this.mLooper = MessageLooper.myLooper()
+                multiLock.notify(notEmpty)
             }
+            nice(this.mPriority)
+            MessageLooper.loop()
+            this.mTid = -1
+            isAlive.store(false)
         }
     }
 
@@ -60,13 +56,12 @@ public class HandlerThread {
     }
 
     public func quit() {
-        let looper = getLooper()
-        if (let Some(v) <- looper) {
+        if (let Some(v) <- mLooper) {
             v.mQuit = true
+            v.running = false
             v.mQueue.quit()
         }
         this.thread?.cancel()
-        return false
     }
 
 }

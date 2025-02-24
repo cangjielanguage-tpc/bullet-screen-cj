@@ -8,10 +8,6 @@ let SCHEME_HTTP_TAG: String = "http"
 let SCHEME_HTTPS_TAG: String = "https"
 let SCHEME_FILE_TAG: String = "file"
 
-// public interface Listener {
-//     func onDanmakuAdd(danmaku: BaseDanmaku): Unit
-// }
-
 public interface IDataSource {
   func data(): Any
 

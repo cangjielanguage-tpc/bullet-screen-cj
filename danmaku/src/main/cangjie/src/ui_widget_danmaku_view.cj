@@ -32,10 +32,10 @@ public class DanmakuView {
     var ready: Bool = false
     @State
     @Watch[onRelayout]
-    var viewWidth: Int64 = 1920
+    var viewWidth: Float64 = 1920.0
     @State
     @Watch[onRelayout]
-    var viewHeight: Int64 = 1080
+    var viewHeight: Float64 = 1080.0
 
     var mHandlerThread: ?HandlerThread = None
 
@@ -49,7 +49,6 @@ public class DanmakuView {
             return handler_.getOrThrow()
         }
     }
-//    var hasHandler: Bool = false
 
     var mEnableDanmakuDrwaingCache: Bool = false
 
@@ -63,7 +62,6 @@ public class DanmakuView {
     var mRequestRender: Bool = false
     var mDrawTimes: NonBlockingQueue<Int64> = NonBlockingQueue<Int64>()
     var mClearFlag: Bool = false
-    var mResumeTryCount: Int64 = 0
 
     let mResumeRunnable: RunnableRecords = RunnableRecords()
 
@@ -75,24 +73,24 @@ public class DanmakuView {
         this.invalidate()
     }
 
-    func setViewWidth(w: Int64): Unit {
+    func setViewWidth(w: Float64): Unit {
         this.viewWidth = w
     }
-    func getViewWidth(): Int64 {
+    func getViewWidth(): Float64 {
         this.viewWidth
     }
-    func setViewHeight(h: Int64): Unit {
+    func setViewHeight(h: Float64): Unit {
         this.viewHeight = h
     }
-    func getViewHeight(): Int64 {
+    func getViewHeight(): Float64 {
         this.viewHeight
     }
 
-    public func backgroundColor(color: UInt32): DanmakuView {
+    func backgroundColor(color: UInt32): DanmakuView {
         this.mbackgroundColor = Color(color)
         this
     }
-    public func backgroundColor(color: Color): DanmakuView {
+    func backgroundColor(color: Color): DanmakuView {
         this.mbackgroundColor = color
         this
     }
@@ -107,12 +105,7 @@ public class DanmakuView {
                 return
             }
             let drawHandler: DrawHandler = that.handler
-            that.mResumeTryCount++
-            if (that.mResumeTryCount > 4 /*|| DanmakuView.super.isShown()*/ ) {
-                drawHandler.resume()
-            } else {
-                drawHandler.postDelayed(that.mResumeRunnable, 100 * that.mResumeTryCount)
-            }
+            drawHandler.resume()
         }
         this.mResumeRunnable.setCall(call)
     }
@@ -139,14 +132,12 @@ public class DanmakuView {
             .height(100.percent)
             .backgroundColor(Color.TRANSPARENT)
             .onAreaChange({
-                old, new => this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
-                PromptAction.showToast(message: "ret = onAreaChange")
-            })
-            .onAppear({=>
-                PromptAction.showToast(message: "ret = onAppear")
+                _, new =>
+                this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
+                this.viewWidth = this.context.width_
+                this.viewHeight = this.context.height_
             })
             .onDisAppear({=>
-                PromptAction.showToast(message: "ret = onDisAppear")
                 this.release()
             })
     }
@@ -203,7 +194,7 @@ public class DanmakuView {
     }
 
     func release(): Unit { // from IDanmakuView 播放控制
-        this.stop()
+        this.stopDraw()
     }
 
     func stop(): Unit { // from IDanmakuView 播放控制
@@ -214,8 +205,11 @@ public class DanmakuView {
         if (this.handler_.isNone()) {
             return
         }
-        let handler: DrawHandler = this.handler
-        handler.quit()
+        this.handler.quit()
+        if (let Some(v) <- this.mHandlerThread) {
+            v.quit()
+            this.mHandlerThread = None
+        }
     }
 
     func getLooper(priority: Int32): MessageLooper {
@@ -223,9 +217,6 @@ public class DanmakuView {
             v.quit()
             this.mHandlerThread = None
         }
-
-        // let priority = 0 // 设置默认线程优先级 0
-
         let mht = HandlerThread("DFM Handler Thread #", priority)
         mht.run()
         let loop = mht.getLooper().getOrThrow()
@@ -243,7 +234,9 @@ public class DanmakuView {
         this.prepareInner()
         this.handler.setConfig(config)
         this.handler.setParser(parser)
-        this.handler.setCallback(this.mCallback.getOrThrow())
+        if (let Some(v) <- this.mCallback) {
+            this.handler.setCallback(v)
+        }
         this.handler.prepare()
     }
 
@@ -333,13 +326,12 @@ public class DanmakuView {
     }
 
     func pause(): Unit { // from IDanmakuView 播放控制
-            this.handler.removeCallbacks(this.mResumeRunnable)
-            this.handler.pause()
+        this.handler.removeCallbacks(this.mResumeRunnable)
+        this.handler.pause()
     }
 
     func resume(): Unit { // from IDanmakuView 播放控制
         if (this.handler_.isSome() && this.handler.isPrepared()) {
-            this.mResumeTryCount = 0
             this.handler.post(this.mResumeRunnable)
         } else if (this.handler_.isNone()) {
             this.restart()
@@ -368,7 +360,6 @@ public class DanmakuView {
             this.handler.removeCallbacksAndMessages()
         }
         this.handler.sendMessage(Message(what: START, obj: position))
-//        this.handler.obtainMessage(START, position).sendToTarget()
     }
 
     func onTouchEvent(event: TouchEvent): Unit {
@@ -459,21 +450,15 @@ public class DanmakuView {
      * @return
      */
     func getCurrentTime(): Int64 { // from IDanmakuView
-            return this.handler.getCurrentTime()
+        return this.handler.getCurrentTime()
     }
 
     func clearDanmakusOnScreen(): Unit {
-            this.handler.clearDanmakusOnScreen()
+        this.handler.clearDanmakusOnScreen()
     }
 
-    //  func setOnDanmakuClickListener(listener: OnDanmakuClickListener, xOff: Int64, yOff: Int64): Unit { // from IDanmakuView Click Listener
-    //    this.mOnDanmakuClickListener = listener
-    //    this.mXOff = xOff
-    //    this.mYOff = yOff
-    //  }
-
-    func getOnDanmakuClickListener(): OnDanmakuClickListener { // from IDanmakuView Click Listener
-        return this.mOnDanmakuClickListener()
+    func getOnDanmakuClickListener(): ?OnDanmakuClickListener { // from IDanmakuView Click Listener
+        return this.mOnDanmakuClickListener
     }
 
     func getXOff(): Float64 { // from IDanmakuView Click Listener

@@ -4,23 +4,6 @@
 
 package danmaku
 
-
-/**
-export interface IDanmakuViewController {
-
-  isViewReady(): boolean;
-
-  getViewWidth(): number;
-
-  getViewHeight(): number;
-
-  drawDanmakus(): number;
-
-  clear(): void;
-
-}
-
-*/
 /**
  * For internal control. DO NOT ACCESS this interface.
  */
@@ -28,9 +11,9 @@ sealed interface IDanmakuViewController {
 
     public func isViewReady(): Bool
 
-    public func getViewWidth(): Int64
+    public func getViewWidth(): Float64
 
-    public func getViewHeight(): Int64
+    public func getViewHeight(): Float64
 
 //    public Context getContext();
 

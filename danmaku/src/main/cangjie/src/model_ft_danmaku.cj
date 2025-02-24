@@ -7,7 +7,7 @@ package danmaku
 public open class FTDanmaku <: BaseDanmaku {
     private var x: Float64 = 0.0
     protected var y: Float64 = -1.0
-    private var RECT: ?Array<Float64> = None
+    private var RECT: Array<Float64> = NullArray
     private var mLastLeft: Float64 = 0.0
     private var mLastPaintWidth: Float64 = 0.0
     private var mLastDispWidth: Float64 = 0.0
@@ -45,18 +45,18 @@ public open class FTDanmaku <: BaseDanmaku {
         return left
     }
 
-    public override func getRectAtTime(displayer: IDisplayer, time: Int64): ?Array<Float64> {
+    public override func getRectAtTime(displayer: IDisplayer, time: Int64): Array<Float64> {
         if (!isMeasured()) {
-            return None
+            return NullArray
         }
         let left: Float64 = getLeftWithDisplayer(displayer)
-        if (RECT.isNone()) {
+        if (RECT.size == 0) {
             RECT = Array<Float64>(4, item: 0.0)
         }
-        RECT()[0] = left
-        RECT()[1] = y
-        RECT()[2] = left + paintWidth
-        RECT()[3] = y + paintHeight
+        RECT[0] = left
+        RECT[1] = y
+        RECT[2] = left + paintWidth
+        RECT[3] = y + paintHeight
         return RECT
     }
 

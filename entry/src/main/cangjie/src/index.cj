@@ -4,10 +4,10 @@ internal import ohos.base.LengthProp
 internal import ohos.base.Color
 internal import ohos.component.Column
 internal import ohos.component.VerticalAlign
-internal import ohos.component.ViewBuilder// 宏依赖
-internal import ohos.component.LegalCallCheck// 宏依赖
-import ohos.state_manage.ViewStackProcessor  // 宏依赖
-internal import ohos.component.If// 宏依赖
+internal import ohos.component.ViewBuilder// Macro expansion dependency class.
+internal import ohos.component.LegalCallCheck// Macro expansion dependency class.
+import ohos.state_manage.ViewStackProcessor  // Macro expansion dependency class.
+internal import ohos.component.If// Macro expansion dependency class.
 internal import ohos.component.Row
 internal import ohos.component.Button
 internal import ohos.component.px2vp
@@ -41,6 +41,9 @@ import encoding.json.JsonValue
 import ohos.router.Router
 import ohos.prompt_action.*
 
+
+var testFile = "x.json"
+
 @Entry
 @Component
 class Index {
@@ -63,6 +66,16 @@ class Index {
                     Button("MemoryInfo.allocatedHeapSize")
                     .onClick({ ent =>
                         PromptAction.showToast(message: "------------------- ret = ${MemoryInfo.allocatedHeapSize/ 1024} KB")
+                    })
+                }
+                Row {
+                    Button("z.json")
+                    .onClick({ ent =>
+                        testFile = "z.json"
+                    })
+                    Button("x.json")
+                    .onClick({ ent =>
+                        testFile = "x.json"
                     })
                 }
             }

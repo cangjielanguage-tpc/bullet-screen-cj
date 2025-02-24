@@ -16,8 +16,8 @@ public class Danmaku <: BaseDanmaku {
 
     public override func layout(displayer: IDisplayer, x: Float64, y: Float64): Unit {}
 
-    public override func getRectAtTime(displayer: IDisplayer, time: Int64): ?Array<Float64> {
-        return None
+    public override func getRectAtTime(displayer: IDisplayer, time: Int64): Array<Float64> {
+        return NullArray
     }
 
     public override func getLeft(): Float64 {

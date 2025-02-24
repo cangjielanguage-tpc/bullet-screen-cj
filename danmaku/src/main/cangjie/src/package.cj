@@ -22,7 +22,9 @@ internal import std.collection.concurrent.NonBlockingQueue
 internal import std.convert.*
 internal import std.math.*
 internal import std.sync.*
-internal import ohos.concurrency.launch
+internal import std.unicode.*
+internal import std.os.posix.nice
+internal import encoding.json.*
 
 
 let START: Int64 = 1
@@ -42,8 +44,6 @@ let FORCE_RENDER: Int64 = 14
 let INDEFINITE_TIME: Int64 = 10000000
 // DrawHandler class definitions end
 
-// let MAX_RECORD_SIZE: Int64 = 500
-
 let MULTIPLIERVALUE: Int64 = 37
 let ALPHA_MAX: Int64 = 255
 let ALPHA_TRANSPARENT: Int64 = 0
@@ -57,12 +57,3 @@ extend<T> Option<T> {
     }
 }
 
-// for test
-func printlnException(arr: Array<StackTraceElement> ): String {
-    let bugs = StringBuilder()
-    for (a in arr) {
-        bugs.append("${a.fileName} ${a.declaringClass} ${a.lineNumber} ${a.methodName}\n")
-    }
-    bugs.toString()
-
-}

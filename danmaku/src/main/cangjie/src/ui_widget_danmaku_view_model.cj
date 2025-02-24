@@ -4,14 +4,10 @@
 
 package danmaku
 
-// TODO  加锁
 public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     var delegate: ?DanmakuView = None
     let userArgs: ArrayList<(DanmakuView) -> Unit> = ArrayList<(DanmakuView) -> Unit>()
-    //    var hasDanmakuView: Bool = false
-    //    let mon = Monitor()
     func setDanmakuView(d: DanmakuView) {
-        //        this.mon.lock()
         this.delegate = d
         this.delegate?.prepareInner()
         for (call in userArgs) {
@@ -19,14 +15,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
         }
         userArgs.clear()
     }
-
-    //    func checkDanmakuView(): Unit {
-    //        if (!this.hasDanmakuView) {
-    //            this.mon.lock()
-    //            this.mon.wait()
-    //            this.mon.unlock()
-    //        }
-    //    }
 
     public func backgroundColor(color: UInt32): Unit {
         this.backgroundColor(Color(color))
@@ -42,7 +30,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     }
 
     public override func isPrepared(): Bool {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.isPrepared()
         } else {
@@ -50,8 +37,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
         }
     }
     public override func isPaused(): Bool {
-        // this.checkDanmakuView()
-        //        this.delegate.isPaused()
         if (let Some(v) <- this.delegate) {
             v.isPaused()
         } else {
@@ -64,7 +49,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * @param type One of THREAD_TYPE_MAIN_THREAD, THREAD_TYPE_HIGH_PRIORITY, THREAD_TYPE_NORMAL_PRIORITY, or THREAD_TYPE_LOW_PRIORITY.
      */
     public override func setDrawingThreadType(threadType: Int64): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.setDrawingThreadType(threadType)
         } else {
@@ -72,7 +56,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.setDrawingThreadType(threadType)
             })
         }
-        //        this.delegate.setDrawingThreadType(threadType)
     }
 
     public override func enableDanmakuDrawingCache(enable: Bool): Unit {
@@ -83,7 +66,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.enableDanmakuDrawingCache(enable)
             })
         }
-        //        this.delegate.enableDanmakuDrawingCache(enable)
     }
 
     public func isDanmakuDrawingCacheEnabled(): Bool {
@@ -91,7 +73,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     }
 
     public override func showFPS(show: Bool): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.showFPS(show)
         } else {
@@ -99,7 +80,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.showFPS(show)
             })
         }
-        //        this.delegate.showFPS(show)
     }
 
     /**
@@ -107,7 +87,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * @param item
      */
     public override func addDanmaku(item: BaseDanmaku): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.addDanmaku(item)
         } else {
@@ -115,11 +94,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.addDanmaku(item)
             })
         }
-        //        this.delegate.addDanmaku(item)
     }
 
     public override func invalidateDanmaku(item: BaseDanmaku, remeasure: Bool): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.invalidateDanmaku(item, remeasure)
         } else {
@@ -127,7 +104,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.invalidateDanmaku(item, remeasure)
             })
         }
-        //        this.delegate.invalidateDanmaku(item, remeasure)
     }
 
     public override func removeAllDanmakus(isClearDanmakusOnScreen: Bool): Unit {
@@ -139,7 +115,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.removeAllDanmakus(isClearDanmakusOnScreen)
             })
         }
-        //        this.delegate.removeAllDanmakus(isClearDanmakusOnScreen)
     }
 
     public override func removeAllLiveDanmakus(): Unit {
@@ -151,16 +126,13 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.removeAllLiveDanmakus()
             })
         }
-        //        this.delegate.removeAllLiveDanmakus()
     }
 
     public override func getCurrentVisibleDanmakus(): ?IDanmakus {
-        // this.checkDanmakuView()
         return (this.delegate?.getCurrentVisibleDanmakus()).getOrThrow()
     }
 
     public override func setCallback(callback: DanmakuCallBack): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.setCallback(callback)
         } else {
@@ -168,7 +140,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.setCallback(callback)
             })
         }
-        //        this.delegate.setCallback(callback)
     }
 
     /**
@@ -176,12 +147,10 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * @return
      */
     public override func getCurrentTime(): Int64 {
-        // this.checkDanmakuView()
         return (this.delegate?.getCurrentTime()).getOrThrow()
     }
 
     public override func getConfig(): ?DanmakuContext {
-        // this.checkDanmakuView()
         return (this.delegate?.getConfig()).getOrThrow()
     }
 
@@ -191,7 +160,10 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     }
 
     public func setWidth(width: Int64) {
-        // this.checkDanmakuView()
+        this.setWidth(Float64(width))
+    }
+
+    public func setWidth(width: Float64) {
         if (let Some(v) <- this.delegate) {
             v.setViewWidth(width)
         } else {
@@ -199,10 +171,12 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.setViewWidth(width)
             })
         }
-        //        this.delegate.setViewWidth(width)
     }
 
     public func setHeight(height: Int64) {
+        this.setHeight(Float64(height))
+    }
+    public func setHeight(height: Float64) {
         // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.setViewHeight(height)
@@ -211,21 +185,17 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.setViewHeight(height)
             })
         }
-        //        this.delegate.setViewHeight(height)
     }
 
-    public override func getWidth(): Int64 {
-        // this.checkDanmakuView()
+    public override func getWidth(): Float64 {
         return (this.delegate?.getViewWidth()).getOrThrow()
     }
 
-    public override func getHeight(): Int64 {
-        // this.checkDanmakuView()
+    public override func getHeight(): Float64 {
         return (this.delegate?.getViewHeight()).getOrThrow()
     }
 
     public override func setVisibility(visibility: Bool): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.mDanmakuVisible = visibility
         } else {
@@ -233,18 +203,15 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.mDanmakuVisible = visibility
             })
         }
-        //        this.delegate.mDanmakuVisible = visibility
     }
 
     public override func isShown(): Bool {
-        // this.checkDanmakuView()
         return (this.delegate?.isShown()).getOrThrow()
     }
 
     // ------------- 播放控制 -------------------
 
     public override func prepare(parser: BaseDanmakuParser, config: DanmakuContext): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.prepare(parser, config)
         } else {
@@ -252,11 +219,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.prepare(parser, config)
             })
         }
-        //        this.delegate.prepare(parser, config)
     }
 
     public override func seekTo(ms: Int64): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.seekTo(ms)
         } else {
@@ -264,14 +229,12 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.seekTo(ms)
             })
         }
-//        this.delegate.seekTo(ms)
     }
 
     public override func start(): Unit {
         this.start(0)
     }
     public override func start(position: Int64): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.start(position)
         } else {
@@ -279,11 +242,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.start(position)
             })
         }
-//        this.delegate.start(position)
     }
 
     public override func stop(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.stop()
         } else {
@@ -291,11 +252,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.stop()
             })
         }
-//        this.delegate.stop()
     }
 
     public override func pause(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.pause()
         } else {
@@ -303,11 +262,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.pause()
             })
         }
-//        this.delegate.pause()
     }
 
     public override func resume(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.resume()
         } else {
@@ -315,11 +272,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.resume()
             })
         }
-//        this.delegate.resume()
     }
 
     public override func release(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.release()
         } else {
@@ -327,11 +282,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.release()
             })
         }
-//        this.delegate.release()
     }
 
     public override func toggle(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.toggle()
         } else {
@@ -339,11 +292,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.toggle()
             })
         }
-//        this.delegate.toggle()
     }
 
     public override func show(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.show()
         } else {
@@ -351,11 +302,9 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.show()
             })
         }
-//        this.delegate.show()
     }
 
     public override func hide(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.hide()
         } else {
@@ -363,7 +312,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.hide()
             })
         }
-//        this.delegate.hide()
     }
 
     /**
@@ -372,7 +320,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * @see #hideAndPauseDrawTask
      */
     public override func showAndResumeDrawTask(position: Int64): Unit {
-        // this.checkDanmakuView()
                 if (let Some(v) <- this.delegate) {
             v.showAndResumeDrawTask(position)
         } else {
@@ -380,7 +327,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.showAndResumeDrawTask(position)
             })
         }
-//        this.delegate.showAndResumeDrawTask(position)
     }
 
     /**
@@ -389,12 +335,10 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * @see #showAndResumeDrawTask
      */
     public override func hideAndPauseDrawTask(): Int64 {
-        // this.checkDanmakuView()
         return (this.delegate?.hideAndPauseDrawTask()).getOrThrow()
     }
 
     public override func clearDanmakusOnScreen(): Unit {
-        // this.checkDanmakuView()
                 if (let Some(v) <- this.delegate) {
             v.clearDanmakusOnScreen()
         } else {
@@ -402,24 +346,20 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.clearDanmakusOnScreen()
             })
         }
-//        this.delegate.clearDanmakusOnScreen()
     }
 
     // ------------- Click Listener -------------------
     public override func setOnDanmakuClickListener(listener: OnDanmakuClickListener): Unit {
-        // this.checkDanmakuView()
-                if (let Some(v) <- this.delegate) {
+        if (let Some(v) <- this.delegate) {
             v.mOnDanmakuClickListener = listener
         } else {
             userArgs.append({
                 view => view.mOnDanmakuClickListener = listener
             })
         }
-//        this.delegate.mOnDanmakuClickListener = listener
     }
     public override func setOnDanmakuClickListener(listener: OnDanmakuClickListener, xOff: Float64, yOff: Float64): Unit {
-        // this.checkDanmakuView()
-                if (let Some(v) <- this.delegate) {
+        if (let Some(v) <- this.delegate) {
             v.mOnDanmakuClickListener = listener
             v.mXOff = xOff
             v.mYOff = yOff
@@ -430,60 +370,51 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view.mYOff = yOff
             })
         }
-//        this.delegate.mOnDanmakuClickListener = listener
-//        this.delegate.mXOff = xOff
-//        this.delegate.mYOff = yOff
     }
 
-    public override func getOnDanmakuClickListener(): OnDanmakuClickListener {
-        // this.checkDanmakuView()
-        return (this.delegate?.getOnDanmakuClickListener()).getOrThrow()
+    public override func getOnDanmakuClickListener(): ?OnDanmakuClickListener {
+        return if (let Some(v) <- this.delegate) {
+            v.getOnDanmakuClickListener()
+        } else {
+            None
+        }
     }
 
     public override func getXOff(): Float64 {
-        // this.checkDanmakuView()
         return (this.delegate?.getXOff()).getOrThrow()
     }
 
     public override func getYOff(): Float64 {
-        // this.checkDanmakuView()
         return (this.delegate?.getYOff()).getOrThrow()
     }
 
     public override func forceRender(): Unit {
-        // this.checkDanmakuView()
-                if (let Some(v) <- this.delegate) {
+        if (let Some(v) <- this.delegate) {
             v.forceRender()
         } else {
             userArgs.append({
                 view => view.forceRender()
             })
         }
-//        this.delegate.forceRender()
     }
 
     public override func isViewReady(): Bool {
-        // this.checkDanmakuView()
         return (this.delegate?.isViewReady()).getOrThrow()
     }
 
-    public override func getViewWidth(): Int64 {
-        // this.checkDanmakuView()
+    public override func getViewWidth(): Float64 {
         return this.getWidth()
     }
 
-    public override func getViewHeight(): Int64 {
-        // this.checkDanmakuView()
+    public override func getViewHeight(): Float64 {
         return this.getHeight()
     }
 
     public override func drawDanmakus(): Int64 {
-        // this.checkDanmakuView()
         return (this.delegate?.drawDanmakus()).getOrThrow()
     }
 
     public override func clear(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.clear()
         } else {
@@ -491,6 +422,5 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
                 view => view.clear()
             })
         }
-//        this.delegate
     }
 }

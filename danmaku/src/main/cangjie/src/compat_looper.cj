@@ -144,7 +144,7 @@ class MessageLooper {
 
     let mQueue: DelayedMessageQueue
 
-    var running: Bool = false
+    var running: Bool = true
 
     var mQuit: Bool = false
 
@@ -169,11 +169,10 @@ class MessageLooper {
         }
     }
 
-    // kan
     public static func loop () {
         let me = myLooper()
         let queue: DelayedMessageQueue = me.mQueue
-        while(true) {
+        while(me.running) {
             if(let Some(msg: Message) <- queue.next()) {
                 msg.target?.dispatchMessage(msg)
                 msg.recycleUnchecked()

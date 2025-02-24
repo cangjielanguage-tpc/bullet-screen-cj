@@ -4,10 +4,7 @@
 
 package danmaku
 
-let rand = AtomicInt64(0)
-
 public class DanmakuTimer {
-    public let r = rand.fetchAdd(1)
     private var currMillisecond_: AtomicInt64 = AtomicInt64(0)
     let lock: ReentrantMutex = ReentrantMutex()
     public prop currMillisecond: Int64 {

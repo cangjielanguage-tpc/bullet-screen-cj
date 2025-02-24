@@ -5,13 +5,25 @@
 package danmaku
 
 public class DanmakusRetainer {
-    private var rldrInstance: ?IDanmakusRetainer = Option<IDanmakusRetainer>.None
-    private var lrdrInstance: ?IDanmakusRetainer = Option<IDanmakusRetainer>.None
-    private var ftdrInstance: ?IDanmakusRetainer = Option<IDanmakusRetainer>.None
-    private var fbdrInstance: ?IDanmakusRetainer = Option<IDanmakusRetainer>.None
+    private var rldrInstance: IDanmakusRetainer
+    private var lrdrInstance: IDanmakusRetainer
+    private var ftdrInstance: IDanmakusRetainer
+    private var fbdrInstance: IDanmakusRetainer
 
     public init(alignBottom: Bool) {
-        setAlignBottom(alignBottom)
+        rldrInstance = if (alignBottom) {
+            AlignBottomRetainer()
+        } else {
+            AlignTopRetainer()
+        }
+        //l2r, 使用AlignBottom或AlignTop
+        lrdrInstance = if (alignBottom) {
+            AlignBottomRetainer()
+        } else {
+            AlignTopRetainer()
+        }
+        ftdrInstance = FTDanmakusRetainer() //fix top
+        fbdrInstance = AlignBottomRetainer() //fix bottom 使用 AlignBottomRetainer逻辑
     }
 
     public func setAlignBottom(alignBottom: Bool): Unit {
@@ -27,42 +39,28 @@ public class DanmakusRetainer {
         } else {
             AlignTopRetainer()
         }
-        if (ftdrInstance.isNone()) {
-            ftdrInstance = FTDanmakusRetainer() //fix top
-        }
-        if (fbdrInstance.isNone()) {
-            fbdrInstance = AlignBottomRetainer() //fix bottom 使用 AlignBottomRetainer逻辑
-        }
     }
 
     public func fix(danmaku: BaseDanmaku, disp: IDisplayer, verifier: ?Verifier): Unit {
         let danmakuType: Int64 = danmaku.getType()
         if (danmakuType == BaseDanmaku.TYPE_SCROLL_RL) {
-            rldrInstance().fix(danmaku, disp, verifier)
+            rldrInstance.fix(danmaku, disp, verifier)
         } else if (danmakuType == BaseDanmaku.TYPE_SCROLL_LR) {
-            lrdrInstance().fix(danmaku, disp, verifier)
+            lrdrInstance.fix(danmaku, disp, verifier)
         } else if (danmakuType == BaseDanmaku.TYPE_FIX_TOP) {
-            ftdrInstance().fix(danmaku, disp, verifier)
+            ftdrInstance.fix(danmaku, disp, verifier)
         } else if (danmakuType == BaseDanmaku.TYPE_FIX_BOTTOM) {
-            fbdrInstance().fix(danmaku, disp, verifier)
+            fbdrInstance.fix(danmaku, disp, verifier)
         } else if (danmakuType == BaseDanmaku.TYPE_SPECIAL) {
             danmaku.layout(disp, 0.0, 0.0)
         }
     }
 
     public func clear(): Unit {
-        if (let Some(v) <- rldrInstance) {
-            v.clear()
-        }
-        if (let Some(v) <- lrdrInstance) {
-            v.clear()
-        }
-        if (let Some(v) <- ftdrInstance) {
-            v.clear()
-        }
-        if (let Some(v) <- fbdrInstance) {
-            v.clear()
-        }
+        rldrInstance.clear()
+        lrdrInstance.clear()
+        ftdrInstance.clear()
+        fbdrInstance.clear()
     }
 
     public func release(): Unit {

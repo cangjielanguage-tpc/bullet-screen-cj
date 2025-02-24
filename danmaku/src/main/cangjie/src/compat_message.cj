@@ -18,7 +18,6 @@ internal class Args {
     }
 }
 
-// TODO 改用 对象池 减少 GC
 public class Message <: Comparable<Message>{
     var what: Int64
     var obj: Any

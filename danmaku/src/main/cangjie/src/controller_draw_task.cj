@@ -111,7 +111,7 @@ public class DrawTask <: IDrawTask {
 
   }
 
-  protected func onDanmakuRemoved(danmaku: BaseDanmaku): Unit {
+  protected func onDanmakuRemoved(_: BaseDanmaku): Unit {
     // override by CacheManagingDrawTask
   }
 
@@ -264,7 +264,6 @@ public class DrawTask <: IDrawTask {
     this.mReadyState = false
   }
 
-    //  定位到这里 这个函数第一次进来 打印, 但是之后就不在进打印逻辑, 需要定位问题
   protected func drawDanmakus(disp: AbsDisplayer<DanmakuCanvas2D, String>, timer: DanmakuTimer): ?RenderingState {
     if (this.clearRetainerFlag) {
       this.mRenderer.clearRetainer()
@@ -306,7 +305,7 @@ public class DrawTask <: IDrawTask {
       }
       // draw screenDanmakus
       this.mRenderingState.isRunningDanmakus = false
-      if (!screenDanmakus.getOrThrow().isEmpty()) {
+      if (screenDanmakus.isSome() && !screenDanmakus.getOrThrow().isEmpty()) {
         this.mRenderer.draw(this.mDisp, screenDanmakus.getOrThrow(), this.mStartRenderTime, renderingState)
         this.endTracing(renderingState)
         if (renderingState.nothingRendered) {
@@ -326,7 +325,7 @@ public class DrawTask <: IDrawTask {
         return renderingState
       } else {
         renderingState.nothingRendered = true
-        renderingState.beginTime = beginMills // TODO  bug存在, endTime=4801
+        renderingState.beginTime = beginMills
         renderingState.endTime = endMills
         return renderingState
       }

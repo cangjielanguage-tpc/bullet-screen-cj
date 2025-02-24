@@ -56,9 +56,9 @@ public interface IDanmakuView {
 
     func getView(): IDanmakuView
 
-    func getWidth(): Int64
+    func getWidth(): Float64
 
-    func getHeight(): Int64
+    func getHeight(): Float64
 
     func setVisibility(visibility: Bool): Unit
 
@@ -109,7 +109,7 @@ public interface IDanmakuView {
 
     func setOnDanmakuClickListener(listener: OnDanmakuClickListener, xOff: Float64, yOff: Float64): Unit
 
-    func getOnDanmakuClickListener(): OnDanmakuClickListener
+    func getOnDanmakuClickListener(): ?OnDanmakuClickListener
 
     func getXOff(): Float64
 

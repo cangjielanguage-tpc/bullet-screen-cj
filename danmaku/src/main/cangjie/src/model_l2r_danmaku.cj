@@ -35,18 +35,18 @@ public class L2RDanmaku <: R2LDanmaku {
         return mStepX * Float64(elapsedTime) - paintWidth
     }
 
-    public override func getRectAtTime(displayer: IDisplayer, time: Int64): ?Array<Float64> {
+    public override func getRectAtTime(displayer: IDisplayer, time: Int64): Array<Float64> {
         if (!isMeasured()) {
-            return None
+            return NullArray
         }
         let left: Float64 = getAccurateLeft(displayer, time)
-        if (RECT.isNone()) {
+        if (RECT.size == 0) {
             RECT = Array<Float64>(4, item: 0.0)
         }
-        RECT()[0] = left
-        RECT()[1] = y
-        RECT()[2] = left + paintWidth
-        RECT()[3] = y + paintHeight
+        RECT[0] = left
+        RECT[1] = y
+        RECT[2] = left + paintWidth
+        RECT[3] = y + paintHeight
         return RECT
     }
 

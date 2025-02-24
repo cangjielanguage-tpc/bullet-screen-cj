@@ -15,7 +15,6 @@ public interface IRenderer {
 
     func setVerifierEnabled(enabled: Bool): Unit
 
-    // func setOnDanmakuShownListener(onDanmakuShownListener: OnDanmakuShownListener): Unit
     func setOnDanmakuShownListener(onDanmakuShown: (BaseDanmaku) -> Unit): Unit
 
     func removeOnDanmakuShownListener(): Unit

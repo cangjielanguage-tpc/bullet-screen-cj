@@ -5,8 +5,12 @@ internal import ohos.ability.AbilityContext
 internal import ohos.ability.AbilityStage
 internal import ohos.ability.LaunchReason
 internal import cj_res_entry.app
+internal import ohos.window.Orientation as DANMAOrientation
+internal import ohos.window.Window
 
 public var globalAbilityContext: Option<AbilityContext> = Option<AbilityContext>.None
+
+var globalWindow: ?Window = None
 
 class MainAbility <: Ability {
     public init() {
@@ -24,6 +28,9 @@ class MainAbility <: Ability {
     }
 
     public override func onWindowStageCreate(windowStage: WindowStage): Unit {
+        let m = windowStage.getMainWindow()
+//        m.setPreferredOrientation(DANMAOrientation.LANDSCAPE)
+        globalWindow = m
         AppLog.info("MainAbility onWindowStageCreate.")
         windowStage.loadContent("Index")
     }

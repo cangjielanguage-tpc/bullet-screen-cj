@@ -303,7 +303,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
 
     public open func layout(displayer: IDisplayer, x: Float64, y: Float64): Unit
 
-    public open func getRectAtTime(displayer: IDisplayer, currTime: Int64): ?Array<Float64>
+    public open func getRectAtTime(displayer: IDisplayer, currTime: Int64): Array<Float64>
 
     public open func getLeft(): Float64
 
