@@ -626,7 +626,7 @@ public class DanmakuContext {
      * @param cacheStuffer
      * @param cacheStufferAdapter
      */
-    public func setCacheStuffer(cacheStuffer: BaseCacheStuffer, cacheStufferAdapter: Proxy): DanmakuContext {
+    public func setCacheStuffer(cacheStuffer: BaseCacheStuffer, cacheStufferAdapter!: ?Proxy = None): DanmakuContext {
         mCacheStuffer = cacheStuffer
         cacheStuffer.bitmaps = this.bitmaps
         if (let Some(v) <- mCacheStuffer) {

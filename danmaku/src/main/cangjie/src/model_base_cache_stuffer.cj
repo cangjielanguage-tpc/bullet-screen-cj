@@ -43,7 +43,7 @@ public abstract class BaseCacheStuffer <: Equatable<BaseCacheStuffer> {
     public func clearCache(danmaku: BaseDanmaku): Unit {
     }
 
-    public func setProxy(adapter: Proxy): Unit {
+    public func setProxy(adapter: ?Proxy): Unit {
         this.mProxy = adapter
     }
 

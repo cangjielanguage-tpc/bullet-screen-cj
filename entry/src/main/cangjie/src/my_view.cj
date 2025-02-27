@@ -87,7 +87,7 @@ class MyView {
         this.mContext.setDuplicateMergingEnabled(false)
         this.mContext.setScrollSpeedFactor(1.2)
         this.mContext.setScaleTextSize(1.2)
-        this.mContext.setCacheStuffer(SpannedCacheStuffer(), this.mCacheStufferAdapter) // 图文混排使用SpannedCacheStuffer
+        this.mContext.setCacheStuffer(SpannedCacheStuffer(), cacheStufferAdapter: this.mCacheStufferAdapter) // 图文混排使用SpannedCacheStuffer
         this.mContext.setMaximumLines(maxLinesPair)
         this.mContext.preventOverlapping(overlappingEnablePair)
         this.mContext.setDanmakuMargin(40)
