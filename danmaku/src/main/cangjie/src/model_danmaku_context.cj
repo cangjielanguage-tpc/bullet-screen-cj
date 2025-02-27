@@ -641,12 +641,6 @@ public class DanmakuContext {
         return this
     }
 
-    // TODO..
-    //    public func setCachingPolicy(cachingPolicy: CachingPolicy): DanmakuContext {
-    //        this.cachingPolicy = cachingPolicy
-    //        return this
-    //    }
-
     public func registerConfigChangedCallback(listener: ConfigChangedCallback): Unit {
         var arr: ArrayList<ConfigChangedCallback>
         if (mCallbackList.isNone()) {

@@ -63,16 +63,17 @@ public class SortedSet<T> <: Collection<T> {
     public func subSet(fromElement: T, toElement: T): SortedSet<T> {
         synchronized(mLockObject) {
             if (let Some(v) <- compare) {
-                var indexFrom = this.list.size
+                let arr = unsafe {this.list.getRawArray()[0..this.list.size]}
+                var indexFrom = arr.size
                 var indexTo = -1
-                for (i in 0..this.list.size) {
-                    if (v(fromElement, this.list[i]) == LT) {
+                for (i in 0..arr.size) {
+                    if (v(fromElement, arr[i]) == LT) {
                         indexFrom = i
                         break
                     }
                 }
-                for (i in this.list.size-1..=0:-1 ) {
-                    if (v(toElement, this.list[i]) == GT) {
+                for (i in arr.size-1..=0:-1 ) {
+                    if (v(toElement, arr[i]) == GT) {
                         indexTo = i
                         break
                     }
@@ -81,18 +82,18 @@ public class SortedSet<T> <: Collection<T> {
                     return SortedSet<T>(v)
                 }
                 let sub = SortedSet<T>(v)
-                sub.list.appendAll(this.list[indexFrom..=indexTo])
+                sub.list.appendAll(arr[indexFrom..=indexTo])
                 return sub
             }
             return this
         }
     }
 
-    public func add(element: T): Unit {  // [2,4,5,6,8,9,10]
+    public func add(element: T): Unit {
         synchronized(mLockObject) {
             this.list.append(element)
             if (let Some(v) <- compare) {
-                this.list.sortBy(stable: true, comparator: v)
+                this.list.sortBy(stable: false, comparator: v)
             }
         }
     }
@@ -101,7 +102,7 @@ public class SortedSet<T> <: Collection<T> {
         synchronized(mLockObject) {
             this.list.append(element)
             if (let Some(v) <- compare) {
-                this.list.sortBy(stable: true, comparator: v)
+                this.list.sortBy(stable: false, comparator: v)
             }
         }
     }
@@ -110,7 +111,7 @@ public class SortedSet<T> <: Collection<T> {
         synchronized(mLockObject) {
             this.list.appendAll(elements)
             if (let Some(v) <- compare) {
-                this.list.sortBy(stable: true, comparator: v)
+                this.list.sortBy(stable: false, comparator: v)
             }
         }
     }
@@ -119,7 +120,7 @@ public class SortedSet<T> <: Collection<T> {
         synchronized(mLockObject) {
             this.list[index] = element
             if (let Some(v) <- compare) {
-                this.list.sortBy(stable: true, comparator: v)
+                this.list.sortBy(stable: false, comparator: v)
             }
         }
     }

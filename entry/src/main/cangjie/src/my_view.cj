@@ -3,10 +3,10 @@ package ohos_app_cangjie_entry
 internal import ohos.base.LengthProp
 internal import ohos.base.Color
 internal import ohos.component.Column
-internal import ohos.component.ViewBuilder // 宏依赖
-internal import ohos.component.LegalCallCheck // 宏依赖
-import ohos.state_manage.ViewStackProcessor // 宏依赖
-internal import ohos.component.If // 宏依赖
+internal import ohos.component.ViewBuilder // Macro expansion dependency class.
+internal import ohos.component.LegalCallCheck // Macro expansion dependency class.
+import ohos.state_manage.ViewStackProcessor // Macro expansion dependency class.
+internal import ohos.component.If // Macro expansion dependency class.
 internal import ohos.component.Row
 internal import ohos.component.Button
 internal import ohos.component.px2vp
@@ -55,7 +55,7 @@ class MyView {
     @State
     var color: Int64 = -1
     @State
-    var TextList: Array<String> = ["hide", "show", "pause", "resume", "发送一条(纯文本)", "发送一条(图文)", "定时发送", "GIF"]
+    var TextList: Array<String> = ["hide", "show", "pause", "resume", "发送一条(纯文本)", "发送一条(图文)", "定时发送", "GIF", "横屏"]
     @State
     var model: DanmakuViewModel = DanmakuViewModel()
     var mContext: DanmakuContext = DanmakuContext.create()
@@ -100,12 +100,16 @@ class MyView {
     }
 
     private func createParser(): BaseDanmakuParser {
-        let parser: MyDanmakuParser = MyDanmakuParser()
+        let parser: BaseDanmakuParser = if (testFile == "x.json") {
+            ArktsDanmakuParser()
+        } else {
+            DefaultJsonDanmakuParser()
+        }
         var arr: Array<Byte> = Array<Byte>()
         if (let Some(v) <- globalAbilityContext) {
             let stageContext = getStageContext(v)
             let rm: ResourceManager = ResourceManager.getResourceManager(stageContext)
-            arr = rm.getRawFileContent("x.json")
+            arr = rm.getRawFileContent(testFile)
         }
         let mjson: JsonValue = String.fromUtf8(arr) |> JsonValue.fromStr
         parser.load(JSONSource(mjson))
@@ -115,6 +119,10 @@ class MyView {
     protected func aboutToAppear() {
         this.viewInit()
         this.pixel = savaGifToca("RRR.gif")
+    }
+
+    protected func aboutToDisappear() {
+
     }
 
     @Builder
@@ -206,10 +214,22 @@ class MyView {
                 this.buildText(7, { i =>
                   addDanmaKuShowGif(false)
                 })
+                this.buildText(
+                    8,
+                    {
+                        i => if (this.TextList[8] == '竖屏') {
+                            globalWindow?.setPreferredOrientation(DANMAOrientation.PORTRAIT)
+                            this.TextList[8] = "横屏"
+                        } else {
+                            globalWindow?.setPreferredOrientation(DANMAOrientation.LANDSCAPE)
+                            this.TextList[8] = "竖屏"
+                        }
+                    }
+                )
             }
             .opacity(0.8)
             .width(100.percent)
-            .height(100.percent) //TODO..
+            .height(100.percent)
             .backgroundColor(0x8acc0000)
         }
         .width(100.percent)

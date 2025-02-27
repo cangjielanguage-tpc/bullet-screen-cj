@@ -58,7 +58,8 @@ sealed abstract class Handler {
     protected func handleMessage(msg: Message): Unit
 
     func sendMessage(msg: Message): Unit {
-        sendMessageDelayed(msg, 0)
+        msg.target = this
+        this.dispatchMessage(msg)
     }
 
     protected open func sendEmptyMessageDelayed(what: Int64, delay: Int64): Unit {
@@ -68,13 +69,20 @@ sealed abstract class Handler {
     }
 
     protected open func sendEmptyMessage(what: Int64): Unit {
-        sendEmptyMessageDelayed(what, 0)
+        let msg = Message.obtain()
+        msg.what = what
+        msg.target = this
+        this.dispatchMessage(msg)
     }
 
     // 延迟发送消息
     protected open func sendMessageDelayed(msg: Message, delay: Int64): Unit {
         msg.target = this
-        this.mQueue.enqueueMessage(msg, delay)
+        if (delay == 0) {
+            this.dispatchMessage(msg)
+        } else{
+            this.mQueue.enqueueMessage(msg, delay)
+        }
     }
 
     // 删除消息
@@ -83,7 +91,9 @@ sealed abstract class Handler {
     }
 
     protected func post(r: RunnableRecords): Unit {
-        sendMessageDelayed(getPostMessage(r), 0)
+        let msg = getPostMessage(r)
+        msg.target = this
+        this.dispatchMessage(msg)
     }
 
     private static func getPostMessage(r: RunnableRecords): Message {

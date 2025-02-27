@@ -118,9 +118,9 @@ public class SpecialDanmaku <: BaseDanmaku {
         getRectAtTime(displayer, mTimer().currMillisecond)
     }
 
-    public override func getRectAtTime(displayer: IDisplayer, currTime: Int64): ?Array<Float64> {
+    public override func getRectAtTime(displayer: IDisplayer, currTime: Int64): Array<Float64> {
         if (!isMeasured()) {
-            return None
+            return NullArray
         }
         if (mScaleFactor.isUpdated(mScaleFactorChangedFlag, mCurrentWidth, mCurrentHeight)) {
             let scaleX: Float64 = mScaleFactor.scaleX
@@ -154,7 +154,7 @@ public class SpecialDanmaku <: BaseDanmaku {
             if (deltaTime >= alphaDuration) {
                 alpha = endAlpha
             } else {
-                let alphaProgress: Int64 = deltaTime / alphaDuration
+                let alphaProgress: Int64 = Int64(Float64(deltaTime) / Float64(alphaDuration))
                 let vectorAlpha: Int64 = deltaAlpha * alphaProgress
                 alpha = beginAlpha + vectorAlpha
             }
@@ -179,7 +179,7 @@ public class SpecialDanmaku <: BaseDanmaku {
                 if (let Some(current) <- currentLinePath) {
                     let deltaX: Float64 = current.delatX
                     let deltaY: Float64 = current.deltaY
-                    tranalationProgress = Float64((deltaTime - current.beginTime) / current.duration)
+                    tranalationProgress = (Float64(deltaTime) - Float64(current.beginTime)) / Float64(current.duration)
                     let beginX: Float64 = current.pBegin.x
                     let beginY: Float64 = current.pBegin.y
                     if (deltaX != 0.0) {
@@ -195,7 +195,7 @@ public class SpecialDanmaku <: BaseDanmaku {
                 tranalationProgress = if (isQuadraticEaseOut) {
                     SpecialDanmaku.getQuadEaseOutProgress(dtime, translationDuration)
                 } else {
-                    Float64(dtime / translationDuration)
+                    Float64(dtime) / Float64(translationDuration)
                 }
                 if (deltaX != 0.0) {
                     let vectorX: Float64 = deltaX * tranalationProgress
@@ -220,13 +220,11 @@ public class SpecialDanmaku <: BaseDanmaku {
     }
 
     private static func getQuadEaseOutProgress(ctime: Int64, duration: Int64): Float64 {
-        var t: Int64 = ctime
-        let c: Int64 = 1
-        let d: Int64 = duration
-        t = t / d
-        let temp: Int64 = t - 2
-        let product: Int64 = t * temp
-        return Float64(-c * product)
+        var t: Float64 = Float64(ctime)
+        let c: Float64 = 1.0
+        let d: Float64 = Float64(duration)
+        t /= d
+        return -c * t * (t - 2.0)
     }
 
     public override func getLeft(): Float64 {

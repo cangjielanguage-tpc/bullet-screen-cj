@@ -141,7 +141,7 @@ public class DanmakuFactory {
             viewportSizeFactor) {
             sizeChanged = true
             REAL_DANMAKU_DURATION = (DanmakuFactory.COMMON_DANMAKU_DURATION * (Int64(viewportSizeFactor
-                * viewportWidth) / DanmakuFactory.BILI_PLAYER_WIDTH))  //debug
+                * viewportWidth) / DanmakuFactory.BILI_PLAYER_WIDTH))
             REAL_DANMAKU_DURATION = min(DanmakuFactory.MAX_DANMAKU_DURATION_HIGH_DENSITY, REAL_DANMAKU_DURATION)
             REAL_DANMAKU_DURATION = max(DanmakuFactory.MIN_DANMAKU_DURATION, REAL_DANMAKU_DURATION)
             CURRENT_DISP_WIDTH = viewportWidth

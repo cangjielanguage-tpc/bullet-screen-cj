@@ -89,8 +89,7 @@ public class DrawHandler <: Handler {
     }
 
     public func quit(): Unit {
-        this.quitFlag = true
-        this.sendEmptyMessage(QUIT)
+        this.caseQUIT(QUIT)
     }
 
     public func isStop(): Bool {
@@ -194,7 +193,7 @@ public class DrawHandler <: Handler {
         let deltaMs: Int64 = position - this.timer.currMillisecond
         this.mTimeBase -= deltaMs
         this.timer.update(position)
-        this.mContext().mGlobalFlagValues.updateMeasureFlag()
+        this.mContext?.mGlobalFlagValues.updateMeasureFlag()
         this.drawTask?.seek(position)
         this.pausedPosition = position
     }
@@ -253,6 +252,7 @@ public class DrawHandler <: Handler {
             this.mPauseState = true
         }
     }
+
     private func caseQUIT(what: Int64){
         if (what == QUIT) {
             this.removeCallbacksAndMessages()
@@ -368,10 +368,10 @@ public class DrawHandler <: Handler {
         return this.mReady
     }
 
-    private func createDrawTask(useDrwaingCache: Bool, timer: DanmakuTimer, width: Int64, height: Int64,
+    private func createDrawTask(useDrwaingCache: Bool, timer: DanmakuTimer, width: Float64, height: Float64,
         taskListener: TaskListener): IDrawTask {
         this.mDisp = this.mContext.getOrThrow().getDisplayer()
-        this.mDisp?.setSize(Float64(width), Float64(height))
+        this.mDisp?.setSize(width, height)
         this.mDisp?.resetSlopPixel(this.mContext.getOrThrow().scaleTextSize)
         let task: IDrawTask = DrawTask(timer, this.mContext(), taskListener)
         task.setParser(this.mParser())

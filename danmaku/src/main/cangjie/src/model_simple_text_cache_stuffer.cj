@@ -9,12 +9,13 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
 
     protected func getCacheHeight(danmaku: BaseDanmaku, paint: DanmakuPaint): Float64 {
         let textSize: Float64 = paint.getTextSize()
-        var textHeight: ?Float64 = sTextHeightCache.get(textSize)
-        if (textHeight.isNone()) {
-            textHeight = measureTextHeight(paint)
-            sTextHeightCache.put(textSize, textHeight())
+        return if (let Some(textHeight) <- sTextHeightCache.get(textSize)) {
+            textHeight
+        } else {
+            let textHeight = measureTextHeight(paint)
+            sTextHeightCache.put(textSize, textHeight)
+            textHeight
         }
-        return textHeight()
     }
 
     public open override func measure(danmaku: BaseDanmaku, paint: DanmakuPaint, fromWorkerThread: Bool): Unit {
@@ -50,7 +51,7 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
             canvas.fillText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(danmaku.text, left, top)// debug TODO
+            canvas.fillText(danmaku.text, left, top)
         }
     }
 

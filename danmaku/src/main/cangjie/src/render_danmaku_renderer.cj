@@ -118,7 +118,7 @@ class InnerConsumer <: Consumer<BaseDanmaku, Unit> {
             }
         }
         if (let Some(v) <- renderingState) {
-            if (!drawItem.hasPassedFilter()) { //还没执行过过滤逻辑
+            if (!drawItem.hasPassedFilter()) {
                 self.mContext.mDanmakuFilters.filter(drawItem, v.indexInScreen, v.totalSizeInScreen, v.timer, false,
                     self.mContext)
             }

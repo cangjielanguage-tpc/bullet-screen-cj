@@ -21,7 +21,7 @@ func printlnException(arr: Array<StackTraceElement> ): String {
 
 }
 
-class MyDanmakuParser <: BaseDanmakuParser {
+class ArktsDanmakuParser <: BaseDanmakuParser {
     protected var mDispScaleX: Float64 = 0.0
     protected var mDispScaleY: Float64 = 0.0
     let lock = Monitor()
@@ -38,26 +38,6 @@ class MyDanmakuParser <: BaseDanmakuParser {
                     for (i in 0..z.size()) {
                         let obj = z.get(i).getOrThrow().asObject()
                         var item: ?BaseDanmaku = None
-                        /**if (let Some(pValue) <- obj.get("-p")){
-                            let values = pValue.asString().getValue().split(",")
-                            let time = Int64(Float64.parse(values[0]) * 1000.0)
-                            let typ = Int64.parse(values[1])
-                            let textSize = Float64.parse(values[2])
-                            let color: UInt32 = (0x00000000ff000000 |UInt32.parse(values[3])) & 0x00000000ffffffff
-                            item = this.mContext.getOrThrow().mDanmakuFactory.createDanmakuByContext(typ, this.mContext)
-                            if (let Some(v) <- item) {
-                                v.setTime(time)
-                                v.textSize = textSize
-                                v.textColor = color
-                                v.textShadowColor = if (color <= 0x000000) {0xFFFFFF} else {0x000000}
-                            }
-
-                        }
-                        if (let Some(test) <- obj.get("#text")){
-                            if (let Some(v) <- item) {
-                                v.text = test.asString().getValue()
-                            }
-                        }*/
                         if (let Some(pValue) <- obj.get("DanmakuType")){
                             let typ = pValue.asInt().getValue()
                             if (let Some(danma) <- this.mContext.getOrThrow().mDanmakuFactory.createDanmakuByContext(typ, this.mContext)) {
@@ -77,14 +57,12 @@ class MyDanmakuParser <: BaseDanmakuParser {
                                     let value = pValue.asInt().getValue()
                                     danma.textShadowColor = UInt32(value)
                                 }
-                                if (let Some(pValue) <- obj.get("textSize")){
+                                if (let Some(pValue) <- obj.get("index")){
                                     let value = pValue.asInt().getValue()
                                     danma.index = value
                                 }
                                 if (let Some(pValue) <- obj.get("text")){
                                     let value = pValue.asString().getValue()
-//                                    danma.text = value
-                                    // TODO  特殊弹幕解析
                                     if (typ == BaseDanmaku.TYPE_SPECIAL && value.startsWith("[") && value.endsWith("]")) {
                                         let bytes = value.toRuneArray()
                                         let newText = String(bytes[1..bytes.size-1])

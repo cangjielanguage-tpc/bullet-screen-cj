@@ -4,13 +4,15 @@
 
 package danmaku
 
+let NullArray = Array<Float64>()
+
 public open class R2LDanmaku <: BaseDanmaku {
     protected static let MAX_RENDERING_TIME: Int64 = 100
     protected static let CORDON_RENDERING_TIME: Int64 = 40
     protected var x: Float64 = 0.0
     protected var y: Float64 = -1.0
     protected var mDistance: Float64 = 0.0
-    protected var RECT: ?Array<Float64> = None
+    protected var RECT: Array<Float64> = NullArray
     protected var mStepX: Float64 = 0.0
     protected var mLastTime: Int64 = 0
 
@@ -45,18 +47,18 @@ public open class R2LDanmaku <: BaseDanmaku {
         return displayer.getWidth() - Float64(elapsedTime) * mStepX
     }
 
-    public open func getRectAtTime(displayer: IDisplayer, time: Int64): ?Array<Float64> {
+    public open func getRectAtTime(displayer: IDisplayer, time: Int64): Array<Float64> {
         if (!isMeasured()) {
-            return None
+            return NullArray
         }
         let left: Float64 = getAccurateLeft(displayer, time)
-        if (RECT.isNone()) {
+        if (RECT.size == 0) {
             RECT = Array<Float64>(4, item: 0.0)
         }
-        RECT()[0] = left
-        RECT()[1] = y
-        RECT()[2] = left + paintWidth
-        RECT()[3] = y + paintHeight
+        RECT[0] = left
+        RECT[1] = y
+        RECT[2] = left + paintWidth
+        RECT[3] = y + paintHeight
         return RECT
     }
 
