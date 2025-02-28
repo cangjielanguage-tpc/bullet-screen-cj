@@ -262,7 +262,7 @@ public class DanmakuView {
                 this.mDrawTimes.dequeue()
             }
             if (dtime > 0) {
-                return Float64(this.mDrawTimes.size * ONE_SECOND / dtime)
+                return Float64(this.mDrawTimes.size * ONE_SECOND) / Float64(dtime)
             }
         }
         return 0.0
@@ -303,7 +303,7 @@ public class DanmakuView {
         } else {
             this.handler.draw(canvas)
             if (this.mShowFps) {
-                let fps: String = "fps ${this.fps()}, time:${this.getCurrentTime() / 1000}"
+                let fps: String = "fps ${this.fps().format('.2')}, time:${this.getCurrentTime() / 1000} s"
                 DrawHelper.drawFPS(canvas, fps)
             }
         }

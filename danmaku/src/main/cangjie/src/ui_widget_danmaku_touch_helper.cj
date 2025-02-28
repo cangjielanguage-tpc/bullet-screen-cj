@@ -77,9 +77,7 @@ public class DanmakuTouchHelper {
                 let danMUKuMessage = DefaultConsumer<BaseDanmaku>(
                     {
                         danmaku: BaseDanmaku =>
-                        this
-                            .mDanmakuBounds
-                            .set(danmaku.getLeft(), danmaku.getTop(), danmaku.getRight(), danmaku.getBottom())
+                        this.mDanmakuBounds.set(danmaku.getLeft(), danmaku.getTop(), danmaku.getRight(), danmaku.getBottom())
                         if (that.mDanmakuBounds.intersect(x - that.mXOff, y - that.mYOff, x + that.mXOff, y + that.mYOff
                         )) {
                             hitDanmakus.addItem(danmaku)

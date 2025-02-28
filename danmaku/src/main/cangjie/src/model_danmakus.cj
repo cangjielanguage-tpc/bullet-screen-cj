@@ -7,11 +7,8 @@ package danmaku
 public class Danmakus <: IDanmakus {
     public var items: SortedSet<BaseDanmaku>
     private var subItems: ?Danmakus = None
-    private var hasSubItems: Bool = false
     private var startItem: ?BaseDanmaku = None
-    private var hasStartItem: Bool = false
     private var endItem: ?BaseDanmaku = None
-    private var hasEndItem: Bool = false
     private var endSubItem: ?BaseDanmaku = None
     private var startSubItem: ?BaseDanmaku = None
     private let mSize: AtomicInt64 = AtomicInt64(0)
@@ -107,7 +104,7 @@ public class Danmakus <: IDanmakus {
         if (mSortType == ST_BY_LIST || items.isEmpty() || items.size == 0) {
             return None
         }
-        if (!hasSubItems) {
+        if (subItems.isNone()) {
             subItems = Danmakus(mDuplicateMergingEnabled)
         }
         if (startSubItem.isNone()) {
@@ -134,8 +131,7 @@ public class Danmakus <: IDanmakus {
         if (items.isEmpty() || items.size == 0) {
             return None
         }
-        if (!hasSubItems) {
-            hasSubItems = true
+        if (subItems.isNone()) {
             if (mSortType == ST_BY_LIST) {
                 subItems = Danmakus(ST_BY_LIST)
                 subItems?.setItems(items)
@@ -146,15 +142,13 @@ public class Danmakus <: IDanmakus {
         if (mSortType == ST_BY_LIST) {
             return (subItems ?? None)
         }
-        if (!hasStartItem) {
-            hasStartItem = true
+        if (startItem.isNone()) {
             startItem = createItem("start")
         }
-        if (!hasEndItem) {
-            hasEndItem = true
+        if (endItem.isNone()) {
             endItem = createItem("end")
         }
-        if (hasSubItems) {
+        if (subItems.isSome()) {
             let dtime: Int64 = startTime - startItem.getOrThrow().getActualTime()
             if (dtime >= 0 && endTime <= endItem.getOrThrow().getActualTime()) {
                 return (subItems ?? None)
@@ -179,8 +173,7 @@ public class Danmakus <: IDanmakus {
             items.clear()
             mSize.store(0)
         }
-        if (hasSubItems) {
-            hasSubItems = false
+        if (subItems.isSome()) {
             subItems = None
             startItem = createItem("start")
             endItem = createItem("end")
@@ -210,12 +203,9 @@ public class Danmakus <: IDanmakus {
 
     public override func setSubItemsDuplicateMergingEnabled(enable: Bool): Unit {
         mDuplicateMergingEnabled = enable
-        hasStartItem = false
-        hasEndItem = false
         startItem = None
         endItem = None
-        if (!hasSubItems) {
-            hasSubItems = true
+        if (subItems.isNone()) {
             subItems = Danmakus(enable)
         }
         this.subItems?.setDuplicateMergingEnabled(enable)
