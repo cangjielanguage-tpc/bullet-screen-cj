@@ -188,9 +188,6 @@ public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
         parseSpecialForArray(item, text.split(","))
     }
     func parseSpecialForArray(item: BaseDanmaku, textArr: Array<String>): Unit {
-        for (i in 0..textArr.size) {
-            textArr[i] = textArr[i].trim()
-        }
         if (textArr.size < 5 || textArr[4].isEmpty()) {
             return // TODO null
         }

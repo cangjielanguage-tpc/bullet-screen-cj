@@ -255,7 +255,8 @@ class MyView {
 
     private func addDanmaKuShowTextAndImage(isLive: Bool): Unit {
         let danmaku: BaseDanmaku = this.mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL).getOrThrow()
-        danmaku.text = "<img src=\"resource://RAWFILE/startIcon.png\" width=\"" + "33" + "\" height=\"" + "33" + "\"/>" + "仓颉你好.."
+        danmaku.image = ImgObj("resource://RAWFILE/startIcon.png", 33.0, 33.0)
+        danmaku.text = "仓颉你好.."
         danmaku.padding = 5.0
         danmaku.priority = 1 // 一定会显示, 一般用于本机发送的弹幕
         danmaku.isLive = isLive

@@ -36,6 +36,11 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     public var text: String = ""
 
     /**
+     * 图片
+     */
+    public var image: ?ImgObj = None
+
+    /**
      * 多行文本: 如果有包含换行符需事先拆分到lines
      */
     public var lines: ?Array<String> = None

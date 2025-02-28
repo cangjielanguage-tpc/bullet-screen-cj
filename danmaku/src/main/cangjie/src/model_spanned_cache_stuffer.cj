@@ -7,69 +7,12 @@ package danmaku
 public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
     public var index: Int64 = 0
     public override func measure(danmaku: BaseDanmaku, paint: DanmakuPaint, fromWorkerThread: Bool): Unit {
-        if (danmaku.text != "" && danmaku.text.startsWith("<img")) {
-            let text: String = danmaku.text
-            let indexSrcStart: Int64 = if (let Some(v) <- text.indexOf("src=\"")) {
-                v + 5
-            } else {
-                0
-            }
-            let indexSrcEnd: Int64 = if (let Some(v) <- text.indexOf("\"", indexSrcStart)) {
-                v
-            } else {
-                0
-            }
-            let src: String = text[indexSrcStart..indexSrcEnd]
-            let indexWidthStart: Int64 = if (let Some(v) <- text.indexOf("width=\"")) {
-                v + 7
-            } else {
-                0
-            }
-            let indexWidthEnd: Int64 = if (let Some(v) <- text.indexOf("\"", indexWidthStart)) {
-                v
-            } else {
-                0
-            }
-            let optText: String = text[indexWidthStart..indexWidthEnd]
-            let width: Float64 = if (let Some(v) <- Float64.tryParse(optText)) {
-                v
-            } else if (let Some(v) <- Int64.tryParse(optText)) {
-                Float64(v)
-            } else {
-                0.0
-            }
-            let indexHeightStart: Int64 = if (let Some(v) <- text.indexOf("height=\"")) {
-                v + 8
-            } else {
-                0
-            }
-            let indexHeightEnd: Int64 = if (let Some(v) <- text.indexOf("\"", indexHeightStart)) {
-                v
-            } else {
-                0
-            }
-            let optText2: String = text[indexHeightStart..indexHeightEnd]
-            let height: Float64 = if (let Some(v) <- Float64.tryParse(optText2)) {
-                v
-            } else if (let Some(v) <- Int64.tryParse(optText2)) {
-                Float64(v)
-            } else {
-                0.0
-            }
-            let indexTagEnd: Int64 = if (let Some(v) <- text.indexOf("/>")) {
-                v + 2
-            } else {
-                0
-            }
-            let pureText: String = text[indexTagEnd..]
-            danmaku.text = pureText
-            super.measure(danmaku, paint, fromWorkerThread)
-            danmaku.paintWidth += width
-            danmaku.paintHeight = max(danmaku.paintHeight, height)
-            danmaku.obj = ImgObj(src, width, height)
-            return
-        }
         super.measure(danmaku, paint, fromWorkerThread)
+        if (let Some(image) <- danmaku.image) {
+            danmaku.paintWidth += image.width
+            danmaku.paintHeight = max(danmaku.paintHeight, image.height)
+            danmaku.obj = image
+        }
     }
 
     public override func drawStroke(danmaku: BaseDanmaku, lineText: String, canvas: DanmakuCanvas2D,
@@ -149,7 +92,7 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
     }
 }
 
-class ImgObj {
+public class ImgObj {
 
     // 图片对象源
     var src: String
@@ -160,8 +103,11 @@ class ImgObj {
     // 图片对象高度
     var height: Float64
 
-    init(src: String, width: Float64, height: Float64) {
+    public init(src: String, width: Float64, height: Float64) {
         this.src = src
+        if (width < 0.0 || height < 0.0) {
+            throw IllegalArgumentException()
+        }
         this.width = width
         this.height = height
     }
