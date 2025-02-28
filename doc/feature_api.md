@@ -21,6 +21,322 @@ public class DanmakuView {
     public init(model!：DanmakuViewModel)
 }
 
+/*
+ * 类名 - BaseDanmaku
+ * 功能 - 抽象弹幕基类
+ */
+public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToString & Equatable<BaseDanmaku> {
+    
+    /*
+     * 从右到左的弹幕类型
+     */
+    public static let TYPE_SCROLL_RL: Int64 = 1
+    
+    /*
+     * 从左到右的弹幕类型
+     */
+    public static let TYPE_SCROLL_LR: Int64 = 6
+    
+    /*
+     * 顶部弹幕类型
+     */
+    public static let TYPE_FIX_TOP: Int64 = 5
+    
+    /*
+     * 底部弹幕类型
+     */
+    public static let TYPE_FIX_BOTTOM: Int64 = 4
+    
+    /*
+     * 特殊弹幕类型
+     */
+    public static let TYPE_SPECIAL: Int64 = 7
+    
+    /**
+     * 偏移时间
+     */
+    public var timeOffset: Int64 = 0
+
+    /**
+     * 文本
+     */
+    public var text: String = ""
+
+    /**
+     * 多行文本: 如果有包含换行符需事先拆分到lines
+     */
+    public var lines: ?Array<String> = None
+
+    /**
+     * 文本颜色
+     */
+    public var textColor: UInt32 = 0
+
+    /**
+     * Z轴角度
+     */
+    public var rotationZ: Float64 = 0.0
+
+    /**
+     * Y轴角度
+     */
+    public var rotationY: Float64 = 0.0
+
+    /**
+     * 阴影/描边颜色
+     */
+    public var textShadowColor: UInt32 = 0
+
+    /**
+     * 下划线颜色,0表示无下划线
+     */
+    public var underlineColor: UInt32 = 0
+
+    /**
+     * 字体大小
+     */
+    public var textSize: Float64 = 65.0
+
+    /**
+     * 边框的颜色,0表示无边框
+     */
+    public var borderColor: UInt32 = 0
+
+    /**
+     * 内边距(像素)
+     */
+    public var padding: Float64 = 0.0
+
+    /**
+     * 弹幕优先级,0为低优先级,>0为高优先级不会被过滤器过滤
+     */
+    public var priority: UInt8 = 0
+
+    /**
+     * 存活时间(毫秒)
+     */
+    public var duration: DanmakuDuration = DanmakuDuration(0)
+
+    /**
+     * 索引/编号
+     */
+    public var index: Int64 = 0
+    
+    /**
+     * 是否是直播弹幕
+     */
+    public var isLive: Bool = false
+
+    /**
+     * 透明度
+     */
+    protected var alpha: Int64 = ALPHA_MAX
+    
+    /*
+     * 设置时间
+     *
+     * @param time - 传入时间
+     *
+     */
+    public func setTime(time: Int64): Unit
+    
+    /*
+     * 设置 pixelMap 集合到弹幕对象中，一般应用于 gif 动图
+     *
+     * @param pixelMapList - pixelMap 集合
+     *
+     */
+    public func setPixelMapList(pixelMapList: ArrayList<PixelMap>): Unit
+    
+    /*
+     * 设置是否为动图展示，前提是有 pixelMap 集合并且大小大于 1，否则为只展示第一帧
+     *
+     * @param isAnimation - 是否为动图展示
+     *
+     */
+    public func setIsAnimation(isAnimation: Bool): Unit
+}
+
+/*
+ * 类名 - DanmakuContext
+ * 功能 - DanmakuContext Context 上下文对象
+ */
+public class DanmakuContext {
+    /*
+     * DanmakuContext 无参构造方法
+     */
+    public init()
+    
+    /*
+     * 静态方法创建 DanmakuContext 对象
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public static func create(): DanmakuContext
+
+    /*
+     * 设置字体
+     *
+     * @param font - 传入自定义字体
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setTypeface(font: String): DanmakuContext
+    
+    /*
+     * 设置透明度
+     *
+     * @param p - 传入透明度值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setDanmakuTransparency(p: Float64): DanmakuContext
+
+    /*
+     * 设置文本字体大小
+     *
+     * @param p - 传入文本字体大小值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setScaleTextSize(p: Float64): DanmakuContext
+    
+    /*
+     * 设置外边距
+     *
+     * @param p - 传入外边距值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setDanmakuMargin(m: Int64): DanmakuContext
+    
+    /*
+     * 设置外边距顶部
+     *
+     * @param p - 传入外边距顶部值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setMarginTop(m: Int64): DanmakuContext
+    
+    /*
+     * 设置弹幕样式
+     *
+     * @param style - 传入描边样式，可传递的值有：
+     *
+     * DANMAKU_STYLE_DEFAULT: Int64 = -1 默认样式
+     * DANMAKU_STYLE_NONE: Int64 = 0 无样式
+     * DANMAKU_STYLE_SHADOW: Int64 = 1 阴影样式，values 传入阴影半径
+     * DANMAKU_STYLE_STROKEN: Int64 = 2 描边样式，values 传入描边宽度
+     * DANMAKU_STYLE_STROKEN: Int64 = 3 投影样式，values 传入 offsetX X轴偏移量, offsetY Y轴偏移量, alpha 透明度
+     *
+     * @param values - 传入数值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setDanmakuStyle(style: Int64, values: Array<Float64>): DanmakuContext
+    
+    /*
+     * 设置是否粗体显示(cj 侧支持的字体)
+     *
+     * @param bold - 是否粗体
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setDanmakuBold(bold: Bool): DanmakuContext
+    
+    /*
+     * 设置弹幕滚动速度系数,只对滚动弹幕有效
+     *
+     * @param p - 弹幕滚动系数值
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setScrollSpeedFactor(p: Float64): DanmakuContext
+    
+    /*
+     * 设置是否启用合并重复弹幕
+     *
+     * @param enable - 是否启用合并重复弹幕
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setDuplicateMergingEnabled(enable: Bool): DanmakuContext
+    
+    /*
+     * 判断是否启用合并重复弹幕
+     *
+     * @return 返回是否启用合并重复弹幕
+     */
+    public func isDuplicateMergingEnabled(): Bool
+    
+    /*
+     * 设置是否底部对齐
+     *
+     * @param enable - 是否底部对齐
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func alignBottom(enable: Bool): DanmakuContext
+    
+    /*
+     * 判断是否底部对齐
+     *
+     * @return 返回是否底部对齐
+     */
+    public func isAlignBottom(): Bool
+    
+    /*
+     * 设置最大显示行数
+     * @param pairs map<K,V> 设置null取消行数限制
+     * K = (BaseDanmaku.TYPE_SCROLL_RL|BaseDanmaku.TYPE_SCROLL_LR|BaseDanmaku.TYPE_FIX_TOP|BaseDanmaku.TYPE_FIX_BOTTOM)
+     * V = 最大行数
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setMaximumLines(pairs: HashMap<Int64, Int64>): DanmakuContext
+    
+    /*
+     * 判断是否设置行数限制
+     *
+     * @return 返回是否设置行数限制
+     */
+    public func isMaxLinesLimited(): Bool
+    
+    /**
+     * 设置防弹幕重叠
+     * @param pairs map<K,V> 设置null恢复默认设置,默认为允许重叠
+     * K = (BaseDanmaku.TYPE_SCROLL_RL|BaseDanmaku.TYPE_SCROLL_LR|BaseDanmaku.TYPE_FIX_TOP|BaseDanmaku.TYPE_FIX_BOTTOM)
+     * V = true|false 是否重叠
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func preventOverlapping(pairs: HashMap<Int64, Bool>): DanmakuContext
+    
+    /*
+     * 判断是否设置放重叠
+     *
+     * @return 返回是否设置放重叠
+     */
+    public func isPreventOverlappingEnabled(): Bool
+    
+    /**
+     * 设置缓存绘制填充器，默认使用 SimpleTextCacheStuffer 只支持纯文字显示, 如果需要图文混排请设置 SpannedCacheStuffer
+     * 
+     * @param BaseCacheStuffer 抽象基类
+     * @param cacheStufferAdapter 缺省参数，默认为 None
+     *
+     * @return 返回 DanmakuContext 对象
+     */
+    public func setCacheStuffer(cacheStuffer: BaseCacheStuffer, cacheStufferAdapter!: ?Proxy = None): DanmakuContext
+    
+    /*
+     * 重置 DanmakuContext 对象
+     *
+     * @return 返回重置后的 DanmakuContext 对象
+     */
+    public func resetContext(): DanmakuContext
+}
 
 /*
  * 类名 - DanmakuViewModel
@@ -140,7 +456,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 参数 width - 宽度
      * 返回值 - Unit
      */
-    public func setWidth (width: Int64)
+    public func setWidth (width: Float64) : Unit
 
     /*
      * 功能 - 设置高度
@@ -148,21 +464,21 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 参数 height - 高度
      * 返回值 - unit
      */
-    public func setHeight (height: Int64)
+    public func setHeight (height: Float64) : Unit
 
     /*
      * 功能 - 获取宽度
      * 
-     * 返回值 Int64 - 宽度 
+     * 返回值 Float64 - 宽度 
      */
-    public override func getWidth () : Int64
+    public override func getWidth () : Float64
 
     /*
      * 功能 - 获取高度
      * 
-     * 返回值 Int64 - 高度 
+     * 返回值 Float64 - 高度 
      */
-    public override func getHeight () : Int64
+    public override func getHeight () : Float64
 
     /*
      * 功能 - 设置可见性
@@ -338,16 +654,16 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     /*
      * 功能 - 获取视图的宽度
      * 
-     * 返回值 Int64 - 宽度
+     * 返回值 Float64 - 宽度
      */
-    public override func getViewWidth () : Int64
+    public override func getViewWidth () : Float64
 
     /*
      * 功能 - 获取视图高度
      * 
-     * 返回值 Int64 - 高度
+     * 返回值 Float64 - 高度
      */
-    public override func getViewHeight () : Int64
+    public override func getViewHeight () : Float64
 
     /*
      * 功能 - 渲染弹幕
