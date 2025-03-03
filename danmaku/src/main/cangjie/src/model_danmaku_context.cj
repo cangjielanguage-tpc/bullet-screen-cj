@@ -601,7 +601,7 @@ public class DanmakuContext {
      * @return
      */
     public func preventOverlapping(pairs: HashMap<Int64, Bool>): DanmakuContext {
-        mIsPreventOverlappingEnabled = pairs.isEmpty()
+        mIsPreventOverlappingEnabled = !(pairs.isEmpty())
         if (pairs.isEmpty()) {
             mDanmakuFilters.unregisterFilter(DanmakuFilters.TAG_OVERLAPPING_FILTER, false)
         } else {

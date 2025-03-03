@@ -51,14 +51,22 @@ public class SpannedCacheStuffer <: SimpleTextCacheStuffer {
         }
         if (isAnimation) {
             let pixelMapList: ArrayList<PixelMap> = danmaku.getPixelMapList()
-            index = index % pixelMapList.size
-            canvas.drawImage(pixelMapList[index], 0.0, 0.0, width, height)
-            index++
-            applyPaintToCanvas(paint, canvas)
-            if (needRestore) {
-                canvas.translate(0.0, -ascent)
+            if (!pixelMapList.isEmpty() && pixelMapList.size > 0) {
+                index = index % pixelMapList.size
+                canvas.drawImage(pixelMapList[index], 0.0, 0.0, width, height)
+                index++
+                applyPaintToCanvas(paint, canvas)
+                if (needRestore) {
+                    canvas.translate(0.0, -ascent)
+                }
+                canvas.fillText(danmaku.text, width, 0.0)
+            } else {
+                applyPaintToCanvas(paint, canvas)
+                if (needRestore) {
+                    canvas.translate(0.0, -ascent)
+                }
+                canvas.fillText(danmaku.text, width, 0.0)
             }
-            canvas.fillText(danmaku.text, width, 0.0)
         } else if (!isAnimation) {
             let imageBitmap: ImageBitmap = if (let Some(v) <- bitmaps) {  // TODO  LRU 优化
                 v.get(src) ?? {=>
