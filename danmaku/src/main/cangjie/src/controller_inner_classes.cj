@@ -82,6 +82,9 @@ public class DanmakuCanvas2D {
     public func measureText(text: String): TextMetrics {
         this.context.measureText(text)
     }
+    public func rotate(angle: Float64): Unit {
+        this.context.rotate(angle)
+    }
 }
 
 public class ConfigChangedCallback <: Equatable<ConfigChangedCallback> {

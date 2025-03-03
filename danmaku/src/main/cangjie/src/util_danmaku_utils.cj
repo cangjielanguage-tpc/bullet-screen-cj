@@ -144,7 +144,7 @@ public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
                     let index: Int64 = Int64(parseNumber(pvalues[7]))
 
                     let danmaItem = this.mContext.getOrThrow().mDanmakuFactory.createDanmakuByContext(typ, this.mContext).getOrThrow()
-                    danmaItem.setTime(Int64(time) * 1000)
+                    danmaItem.setTime(Int64(time * 1000.0))
                     danmaItem.textSize = textSize * this.mDispDensity * 0.8
                     danmaItem.textColor = color
                     danmaItem.textShadowColor = UInt32(4278190080)
@@ -234,7 +234,7 @@ public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
             endY *= Float64(DanmakuFactory.BILI_PLAYER_HEIGHT);
         }
         item.duration = DanmakuDuration(alphaDuraion);
-        item.rotationZ = rotateZ;
+        item.rotationZ = rotateZ * Float64.PI / 180.0;
         item.rotationY = rotateY;
         this.mContext.getOrThrow().mDanmakuFactory.fillTranslationData(item, beginX,
                             beginY, endX, endY, translationDuration, translationStartDelay, mDispScaleX, mDispScaleY);
