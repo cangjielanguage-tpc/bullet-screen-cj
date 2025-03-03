@@ -419,6 +419,9 @@ public class OhcjDisplayer <: AbsDisplayer<DanmakuCanvas2D, String> {
     }
 
     private func saveCanvas(danmaku: BaseDanmaku, canvas: DanmakuCanvas2D, left: Float64, top: Float64): Int64 {
+        canvas.save()
+        canvas.translate(left, top);
+        canvas.rotate(danmaku.rotationZ)
         return 0
     }
 

@@ -272,7 +272,8 @@ class MyView {
         let danmaku: BaseDanmaku = this.mContext.mDanmakuFactory.createDanmaku(BaseDanmaku.TYPE_SCROLL_RL).getOrThrow()
         danmaku.setPixelMapList(ArrayList<PixelMap>(pixel.getOrThrow()))
         danmaku.setIsAnimation(true)
-        danmaku.text = "<img src=\"resource://RAWFILE/RRR.gif\" width=\"" + "99" + "\" height=\"" + "99" + "\"/>"
+        danmaku.image = ImgObj("resource://RAWFILE/RRR.gif", 99.0, 99.0)
+        danmaku.text = ""
         danmaku.padding = 0.0
         danmaku.priority = 1 // 一定会显示, 一般用于本机发送的弹幕
         danmaku.isLive = isLive
