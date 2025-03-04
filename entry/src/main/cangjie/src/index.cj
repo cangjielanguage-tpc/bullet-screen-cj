@@ -44,9 +44,15 @@ import ohos.prompt_action.*
 
 var testFile = "x.json"
 
+var Landscape_screen = "横屏"
+var showS: Array<String> = ["显示FPS", "不显示FPS"]
+var showIndex: Int64 = 0
+
 @Entry
 @Component
 class Index {
+    @State
+    var index: Int64 = 0
     func build() {
             Column {
                 Row{
@@ -57,18 +63,6 @@ class Index {
                         })
                 }
                 Row {
-                    Button("MemoryInfo.maxHeapSize")
-                    .onClick({ ent =>
-                        PromptAction.showToast(message: "------------------- ret = ${MemoryInfo.maxHeapSize / 1024 / 1024}MB")
-                    })
-                }
-                Row {
-                    Button("MemoryInfo.allocatedHeapSize")
-                    .onClick({ ent =>
-                        PromptAction.showToast(message: "------------------- ret = ${MemoryInfo.allocatedHeapSize/ 1024} KB")
-                    })
-                }
-                Row {
                     Button("z.json")
                     .onClick({ ent =>
                         testFile = "z.json"
@@ -76,6 +70,28 @@ class Index {
                     Button("x.json")
                     .onClick({ ent =>
                         testFile = "x.json"
+                    })
+                }
+                Row {
+                    Button(Landscape_screen)
+                    .onClick({ _ =>
+                        if (Landscape_screen == '竖屏') {
+                            globalWindow?.setPreferredOrientation(DANMAOrientation.PORTRAIT)
+                            Landscape_screen = "横屏"
+                        } else {
+                            globalWindow?.setPreferredOrientation(DANMAOrientation.LANDSCAPE)
+                            Landscape_screen = "竖屏"
+                        }
+                    })
+                    Button(showS[index])
+                    .onClick({ _ =>
+                        if (showIndex == 0) {
+                            showIndex = 1
+                            index = 1
+                        } else {
+                            showIndex = 0
+                            index = 0
+                        }
                     })
                 }
             }

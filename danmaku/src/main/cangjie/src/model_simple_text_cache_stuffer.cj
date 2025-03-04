@@ -48,10 +48,10 @@ public open class SimpleTextCacheStuffer <: BaseCacheStuffer {
         left: Float64, top: Float64, paint: DanmakuPaint): Unit {
         if (lineText != "") {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(lineText, left, top)
+            canvas.strokeText(lineText, left, top)
         } else {
             applyPaintToCanvas(paint, canvas)
-            canvas.fillText(danmaku.text, left, top)
+            canvas.strokeText(danmaku.text, left, top)
         }
     }
 

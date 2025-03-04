@@ -55,7 +55,7 @@ class MyView {
     @State
     var color: Int64 = -1
     @State
-    var TextList: Array<String> = ["hide", "show", "pause", "resume", "发送一条(纯文本)", "发送一条(图文)", "定时发送", "GIF", "横屏"]
+    var TextList: Array<String> = ["hide", "show", "pause", "resume", "发送一条(纯文本)", "发送一条(图文)", "定时发送", "GIF", "横竖切换"]
     @State
     var model: DanmakuViewModel = DanmakuViewModel()
     var mContext: DanmakuContext = DanmakuContext.create()
@@ -95,8 +95,7 @@ class MyView {
         this.model.setCallback(DanmaEntryCall(this))
         this.model.setOnDanmakuClickListener(OnDanMu(this))
         this.model.prepare(this.mParser.getOrThrow(), this.mContext)
-        this.model.showFPS(true)
-        this.model.backgroundColor(Color.GRAY)
+        this.model.showFPS(showIndex == 0)
     }
 
     private func createParser(): BaseDanmakuParser {
@@ -217,12 +216,12 @@ class MyView {
                 this.buildText(
                     8,
                     {
-                        i => if (this.TextList[8] == '竖屏') {
+                        i => if (Landscape_screen == '竖屏') {
                             globalWindow?.setPreferredOrientation(DANMAOrientation.PORTRAIT)
-                            this.TextList[8] = "横屏"
+                            Landscape_screen = "横屏"
                         } else {
                             globalWindow?.setPreferredOrientation(DANMAOrientation.LANDSCAPE)
-                            this.TextList[8] = "竖屏"
+                            Landscape_screen = "竖屏"
                         }
                     }
                 )
@@ -249,7 +248,7 @@ class MyView {
         danmaku.textSize = 25.0 * (this.mParser.getOrThrow().getDisplayer().getOrThrow().getDensity() * 0.8)
         danmaku.textColor = 0xffff0000
         danmaku.textShadowColor = 0xffffffff
-        danmaku.borderColor = 0xff00ff00
+        danmaku.borderColor = 0x00ff0000
         this.model.addDanmaku(danmaku)
     }
 

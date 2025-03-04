@@ -140,14 +140,18 @@ public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
                     let time: Float64 = parseNumber(pvalues[0])
                     let typ: Int64 = Int64.parse(pvalues[1])
                     let textSize: Float64 = parseNumber(pvalues[2])
-                    let color: UInt32 =  UInt32.parse(pvalues[3])
+                    let color: Int64 =  Int64.parse(pvalues[3])
                     let index: Int64 = Int64(parseNumber(pvalues[7]))
 
                     let danmaItem = this.mContext.getOrThrow().mDanmakuFactory.createDanmakuByContext(typ, this.mContext).getOrThrow()
                     danmaItem.setTime(Int64(time * 1000.0))
                     danmaItem.textSize = textSize * this.mDispDensity * 0.8
-                    danmaItem.textColor = color
-                    danmaItem.textShadowColor = UInt32(4278190080)
+                    danmaItem.textColor = UInt32(color)
+                    danmaItem.textShadowColor = if (color <= 0) {
+                        0xFFFFFF
+                    } else {
+                        0x00000000
+                    }
                     danmaItem.index = index
                     danmaItem.flags = mContext.getOrThrow().mGlobalFlagValues;
                     // 必须要加才行
@@ -242,7 +246,7 @@ public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
         if (textArr.size >= 12) {
             // 是否有描边
             if (!textArr[11].isEmpty() && "true" == textArr[11].toAsciiLower()) {
-                item.textShadowColor = 0;
+                item.textShadowColor = 0
             }
         }
         if (textArr.size >= 13) {

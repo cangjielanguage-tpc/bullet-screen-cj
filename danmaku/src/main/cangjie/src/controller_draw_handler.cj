@@ -27,7 +27,7 @@ public class DrawHandler <: Handler {
     private var timer: DanmakuTimer = DanmakuTimer()
     private var mParser: ?BaseDanmakuParser = None
     public var drawTask: ?IDrawTask = None
-    private let mDanmakuView: IDanmakuViewController
+    private let mDanmakuView: DanmakuView
     private var mDanmakusVisible: Bool = true
     private var mDisp: ?AbsDisplayer<DanmakuCanvas2D, String> = None
     var mRenderingState: RenderingState = RenderingState()
@@ -50,7 +50,7 @@ public class DrawHandler <: Handler {
 
     var backAnimator: AnimatorResult = unsafe {zeroValue<AnimatorResult>()}
 
-    init(looper: MessageLooper, view: IDanmakuViewController, danmakuVisibile: Bool) {
+    init(looper: MessageLooper, view: DanmakuView, danmakuVisibile: Bool) {
         super(looper)
         this.mDanmakuView = view
         if (!danmakuVisibile) {
@@ -212,11 +212,12 @@ public class DrawHandler <: Handler {
             this.sendEmptyMessageDelayed(RESUME, 100)
         }
         if (let Some(v) <- this.mPauseState) {
-            if (v) {
-                this.backAnimator.play()
-                this.mPauseState = false
+            if (!v) {
+                return
             }
         }
+        this.backAnimator.play()
+        this.mPauseState = false
     }
 
     private func caseNOTIFY_DISP_SIZE_CHANGED(msg: Message){

@@ -4,7 +4,7 @@
 
 package danmaku
 
-public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
+public class DanmakuViewModel <: IDanmakuView {
     var delegate: ?DanmakuView = None
     let userArgs: ArrayList<(DanmakuView) -> Unit> = ArrayList<(DanmakuView) -> Unit>()
     func setDanmakuView(d: DanmakuView) {
@@ -68,7 +68,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
         }
     }
 
-    public func isDanmakuDrawingCacheEnabled(): Bool {
+    public override func isDanmakuDrawingCacheEnabled(): Bool {
         (this.delegate?.isDanmakuDrawingCacheEnabled()).getOrThrow()
     }
 
@@ -394,32 +394,6 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
         } else {
             userArgs.append({
                 view => view.forceRender()
-            })
-        }
-    }
-
-    public override func isViewReady(): Bool {
-        return (this.delegate?.isViewReady()).getOrThrow()
-    }
-
-    public override func getViewWidth(): Float64 {
-        return this.getWidth()
-    }
-
-    public override func getViewHeight(): Float64 {
-        return this.getHeight()
-    }
-
-    public override func drawDanmakus(): Int64 {
-        return (this.delegate?.drawDanmakus()).getOrThrow()
-    }
-
-    public override func clear(): Unit {
-        if (let Some(v) <- this.delegate) {
-            v.clear()
-        } else {
-            userArgs.append({
-                view => view.clear()
             })
         }
     }
