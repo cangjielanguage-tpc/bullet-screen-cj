@@ -226,7 +226,7 @@ public class DanmakuView {
 
     func prepareInner(): Unit {
         if (this.handler_.isNone()) {
-            this.handler_ = DrawHandler(getLooper(0), this.model, this.mDanmakuVisible)
+            this.handler_ = DrawHandler(getLooper(0), this, this.mDanmakuVisible)
         }
     }
 

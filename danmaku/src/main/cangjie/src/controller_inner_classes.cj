@@ -85,6 +85,10 @@ public class DanmakuCanvas2D {
     public func rotate(angle: Float64): Unit {
         this.context.rotate(angle)
     }
+    public func strokeText(text: String, x: Float64, y: Float64): Unit{
+        this.context.strokeText(text,x,y)
+    }
+
 }
 
 public class ConfigChangedCallback <: Equatable<ConfigChangedCallback> {

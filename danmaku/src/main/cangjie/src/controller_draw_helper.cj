@@ -20,7 +20,7 @@ public class DrawHelper {
     public static func drawFPS(canvas: DanmakuCanvas2D, text: String): Unit {
        if (DrawHelper.PAINT_FPS.isNone()) {
            let dp = DanmakuPaint(canvas)
-           dp.setColor(0xFFFF00)
+           dp.setColor(0xFF0000)
            dp.setTextSize(30.0)
            DrawHelper.PAINT_FPS = dp
        }
