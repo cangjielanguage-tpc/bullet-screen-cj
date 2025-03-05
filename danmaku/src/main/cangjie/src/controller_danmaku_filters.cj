@@ -54,8 +54,8 @@ public class TypeDanmakuFilter <: BaseDanmakuFilter<ArrayList<Int64>> {
         }
     }
 
-    public override func filter(danmaku: ?BaseDanmaku, orderInScreen: Int64, totalsizeInScreen: Int64,
-        timer: DanmakuTimer, fromCachingTask: Bool, config: DanmakuContext): Bool {
+    public override func filter(danmaku: ?BaseDanmaku, _: Int64, _: Int64,
+        _: DanmakuTimer, _: Bool, _: DanmakuContext): Bool {
         let filtered: Bool = danmaku.isSome() && mFilterTypes.contains(danmaku().getType())
         if (filtered) {
             danmaku().mFilterParam |= DanmakuFilters.FILTER_TYPE_TYPE
@@ -91,8 +91,8 @@ public class QuantityDanmakuFilter <: BaseDanmakuFilter<Int64> {
     private var mFilterFactor: Int64 = 1
     let mtx = ReentrantMutex()
 
-    private func needFilter(danmaku: BaseDanmaku, orderInScreen: Int64, totalSizeInScreen: Int64, timer: DanmakuTimer,
-        fromCachingTask: Bool, context: DanmakuContext): Bool {
+    private func needFilter(danmaku: BaseDanmaku, orderInScreen: Int64, _: Int64, _: DanmakuTimer,
+        _: Bool, context: DanmakuContext): Bool {
         if (mMaximumSize <= 0 || danmaku.getType() != BaseDanmaku.TYPE_SCROLL_RL) {
             return false
         }

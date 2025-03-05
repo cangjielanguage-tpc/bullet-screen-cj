@@ -107,7 +107,6 @@ public class DanmakuViewModel <: IDanmakuView {
     }
 
     public override func removeAllDanmakus(isClearDanmakusOnScreen: Bool): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.removeAllDanmakus(isClearDanmakusOnScreen)
         } else {
@@ -118,7 +117,6 @@ public class DanmakuViewModel <: IDanmakuView {
     }
 
     public override func removeAllLiveDanmakus(): Unit {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.removeAllLiveDanmakus()
         } else {
@@ -177,7 +175,6 @@ public class DanmakuViewModel <: IDanmakuView {
         this.setHeight(Float64(height))
     }
     public func setHeight(height: Float64) {
-        // this.checkDanmakuView()
         if (let Some(v) <- this.delegate) {
             v.setViewHeight(height)
         } else {

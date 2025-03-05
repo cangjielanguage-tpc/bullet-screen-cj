@@ -78,7 +78,7 @@ public class DanmakuPaint {
         return mTextSize
     }
 
-    public func setStyle(style: Style): Unit {}
+    public func setStyle(_: Style): Unit {}
 
     public func setColor(mColor: UInt32): Unit {
         this.mColor = mColor
