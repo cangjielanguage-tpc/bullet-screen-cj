@@ -43,5 +43,5 @@ public func applyPaintToCanvas(paint: DanmakuPaint, context: ?DanmakuCanvas2D): 
 }
 
 func colorNumber2String(color: UInt32, alpha: Int64): UInt32 {
-    (color & 0xffffff) + (UInt32(alpha & 0xff) << 24)// 0xFF_FF_FF_FF  0xalpha_R_G_B
+    (color & 0xffffff) | (UInt32(alpha & 0xff) << 24)// 0xFF_FF_FF_FF  0xalpha_R_G_B
 }

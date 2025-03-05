@@ -363,6 +363,9 @@ public class DanmakuContext {
      * @return
      */
     public func setDanmakuStyle(style: Int64, values: Array<Float64>): DanmakuContext {
+        if  (values.size == 0) {
+            return this
+        }
         mDisplayer.setDanmakuStyle(style, values)
         notifyConfigureChanged(DanmakuConfigTag.DANMAKU_STYLE, style, values)
         return this
