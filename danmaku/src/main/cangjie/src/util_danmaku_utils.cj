@@ -112,7 +112,7 @@ public class DanmakuUtils {
     }
 }
 
-public open class DefaultJsonDanmakuParser <: BaseDanmakuParser {
+class DefaultJsonDanmakuParser <: BaseDanmakuParser {
     protected var mDispScaleX: Float64 = 0.0
     protected var mDispScaleY: Float64 = 0.0
     let lock = Monitor()

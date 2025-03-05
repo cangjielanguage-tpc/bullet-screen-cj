@@ -28,12 +28,12 @@ public class DanmakuView {
 public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToString & Equatable<BaseDanmaku> {
     
     /*
-     * 从右到左的弹幕类型
+     * 从右到左的滚动弹幕类型
      */
     public static let TYPE_SCROLL_RL: Int64 = 1
     
     /*
-     * 从左到右的弹幕类型
+     * 从左到右的滚动弹幕类型
      */
     public static let TYPE_SCROLL_LR: Int64 = 6
     
@@ -73,12 +73,12 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     public var textColor: UInt32 = 0
 
     /**
-     * Z轴角度
+     * Z轴偏转角度
      */
     public var rotationZ: Float64 = 0.0
 
     /**
-     * Y轴角度
+     * Y轴偏转角度
      */
     public var rotationY: Float64 = 0.0
 
@@ -113,12 +113,12 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     public var priority: UInt8 = 0
 
     /**
-     * 存活时间(毫秒)
+     * 表示弹幕的存活时长，实参的单位是毫秒。
      */
     public var duration: DanmakuDuration = DanmakuDuration(0)
 
     /**
-     * 索引/编号
+     * 表示弹幕的唯一索引/编号。
      */
     public var index: Int64 = 0
     
@@ -127,13 +127,8 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
      */
     public var isLive: Bool = false
 
-    /**
-     * 透明度
-     */
-    protected var alpha: Int64 = ALPHA_MAX
-    
     /*
-     * 设置时间
+     * 设置弹幕开始渲染的时间
      *
      * @param time - 传入时间
      *
@@ -143,7 +138,7 @@ public abstract class BaseDanmaku <: Hashable & Comparable<BaseDanmaku> & ToStri
     /*
      * 设置 pixelMap 集合到弹幕对象中，一般应用于 gif 动图
      *
-     * @param pixelMapList - pixelMap 集合
+     * @param pixelMapList - pixelMap 集合，若pixelMapList为空则不加载帧
      *
      */
     public func setPixelMapList(pixelMapList: ArrayList<PixelMap>): Unit
@@ -175,16 +170,16 @@ public class DanmakuContext {
     public static func create(): DanmakuContext
 
     /*
-     * 设置字体
+     * 设置字体，默认值是"sans-serif"
      *
-     * @param font - 传入自定义字体
+     * @param font - 传入自定义字体，参照ohos.font（自定义字体）
      *
      * @return 返回 DanmakuContext 对象
      */
     public func setTypeface(font: String): DanmakuContext
     
     /*
-     * 设置透明度
+     * 设置透明度，透明度和值成正比，建议取值范围0-255。
      *
      * @param p - 传入透明度值
      *
@@ -204,16 +199,16 @@ public class DanmakuContext {
     /*
      * 设置外边距
      *
-     * @param p - 传入外边距值
+     * @param p - 传入外边距值，单位是px像素
      *
      * @return 返回 DanmakuContext 对象
      */
     public func setDanmakuMargin(m: Int64): DanmakuContext
     
     /*
-     * 设置外边距顶部
+     * 设置顶部的外边距
      *
-     * @param p - 传入外边距顶部值
+     * @param p - 传入外边距顶部值，单位是px像素
      *
      * @return 返回 DanmakuContext 对象
      */
@@ -228,7 +223,7 @@ public class DanmakuContext {
      * DANMAKU_STYLE_NONE: Int64 = 0 无样式
      * DANMAKU_STYLE_SHADOW: Int64 = 1 阴影样式，values 传入阴影半径
      * DANMAKU_STYLE_STROKEN: Int64 = 2 描边样式，values 传入描边宽度
-     * DANMAKU_STYLE_STROKEN: Int64 = 3 投影样式，values 传入 offsetX X轴偏移量, offsetY Y轴偏移量, alpha 透明度
+     * DANMAKU_STYLE_PROJECTION: Int64 = 3 投影样式，values 传入 offsetX X轴偏移量, offsetY Y轴偏移量, alpha 透明度
      *
      * @param values - 传入数值
      *
@@ -237,7 +232,7 @@ public class DanmakuContext {
     public func setDanmakuStyle(style: Int64, values: Array<Float64>): DanmakuContext
     
     /*
-     * 设置是否粗体显示(cj 侧支持的字体)
+     * 设置是否粗体显示,跟setTypeface接口设置的字体有效性强相关，如字体设置无效则加粗无效。
      *
      * @param bold - 是否粗体
      *
@@ -246,9 +241,9 @@ public class DanmakuContext {
     public func setDanmakuBold(bold: Bool): DanmakuContext
     
     /*
-     * 设置弹幕滚动速度系数,只对滚动弹幕有效
+     * 设置弹幕滚动速度系数,只对滚动弹幕（TYPE_SCROLL_LR，TYPE_SCROLL_RL）有效
      *
-     * @param p - 弹幕滚动系数值
+     * @param p - 弹幕滚动系数值，系数越大，弹幕滚动速度越慢
      *
      * @return 返回 DanmakuContext 对象
      */
@@ -287,8 +282,8 @@ public class DanmakuContext {
     public func isAlignBottom(): Bool
     
     /*
-     * 设置最大显示行数
-     * @param pairs map<K,V> 设置null取消行数限制
+     * 设置最大显示行数，添加弹幕时，若设置priority大于0时，不受行数的限制。
+     * @param pairs map<K,V> 如果为空则行数不受限制
      * K = (BaseDanmaku.TYPE_SCROLL_RL|BaseDanmaku.TYPE_SCROLL_LR|BaseDanmaku.TYPE_FIX_TOP|BaseDanmaku.TYPE_FIX_BOTTOM)
      * V = 最大行数
      *
@@ -304,19 +299,19 @@ public class DanmakuContext {
     public func isMaxLinesLimited(): Bool
     
     /**
-     * 设置防弹幕重叠
-     * @param pairs map<K,V> 设置null恢复默认设置,默认为允许重叠
+     * 设置弹幕是否防重叠
+     * @param pairs map<K,V> 如果为空则默认为允许重叠
      * K = (BaseDanmaku.TYPE_SCROLL_RL|BaseDanmaku.TYPE_SCROLL_LR|BaseDanmaku.TYPE_FIX_TOP|BaseDanmaku.TYPE_FIX_BOTTOM)
-     * V = true|false 是否重叠
+     * V = true|false 是否防重叠
      *
      * @return 返回 DanmakuContext 对象
      */
     public func preventOverlapping(pairs: HashMap<Int64, Bool>): DanmakuContext
     
     /*
-     * 判断是否设置放重叠
+     * 判断是否设置防重叠
      *
-     * @return 返回是否设置放重叠
+     * @return 返回是否设置防重叠
      */
     public func isPreventOverlappingEnabled(): Bool
     
@@ -342,21 +337,21 @@ public class DanmakuContext {
  * 类名 - DanmakuViewModel
  * 功能 - DanmakuView UI自定义组件控制器
  */
-public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
+public class DanmakuViewModel <: IDanmakuView {
 
     /*
      * 功能 - 设置背景颜色
      * 
-     * 参数 color - 颜色
-     * 返回值 Unit - unit
+     * 参数 color - RGB的十六进制颜色值
+     * 返回值 Unit
      */
     public func backgroundColor (color: UInt32) : Unit
 
     /*
      * 功能 - 设置背景颜色
      * 
-     * 参数 color - 颜色
-     * 返回值 Unit - unit
+     * 参数 color - 颜色类，参照ohos.color
+     * 返回值 Unit
      */
     public func backgroundColor (color: Color) : Unit
 
@@ -377,16 +372,16 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
     /*
      * 功能 - 显示 FPS
      * 
-     * 参数 show - 显示为true
-     * 返回值 Unit - unit
+     * 参数 show - 是否显示
+     * 返回值 Unit
      */
     public override func showFPS (show: Bool) : Unit
 
     /*
-     * 功能 - 添加弹幕
+     * 功能 - 添加弹幕，BaseDanmaku类是抽象弹幕类， 如需创建弹幕请参阅 BaseDanmakuParser
      * 
      * 参数 item - 弹幕类
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func addDanmaku (item: BaseDanmaku) : Unit
 
@@ -395,7 +390,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 
      * 参数 item - 弹幕类
      * 参数 remeasure - 是否重新检测
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func invalidateDanmaku (item: BaseDanmaku, remeasure: Bool) : Unit
 
@@ -403,52 +398,31 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 功能 - 删除所有弹幕
      * 
      * 参数 isClearDanmakusOnScreen - 是否清屏
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func removeAllDanmakus (isClearDanmakusOnScreen: Bool) : Unit
 
     /*
      * 功能 - 删除所有弹幕
      * 
-     * 返回值 Unit - Unit
+     * 返回值 Unit
      */
     public override func removeAllLiveDanmakus () : Unit
-
-    /*
-     * 功能 - 获取当前可见弹幕
-     * 
-     * 返回值 ?IDanmakus - 弹幕的Option类型
-     */
-    public override func getCurrentVisibleDanmakus () : ?IDanmakus
 
     /*
      * 功能 - 设置回调函数
      * 
      * 参数 callback - 回调函数DanmakuCallBack
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func setCallback (callback: DanmakuCallBack) : Unit
 
     /*
-     * 功能 - 获取当前时间
+     * 功能 - 获取当前时间，单位是毫秒
      * 
      * 返回值 Int64 - 时间的int64表示
      */
     public override func getCurrentTime () : Int64
-
-    /*
-     * 功能 - 获取配置类
-     * 
-     * 返回值 ?DanmakuContext - DanmakuContext
-     */
-    public override func getConfig () : ?DanmakuContext
-
-    /*
-     * 功能 - 获取IDanmakuView
-     * 
-     * 返回值 IDanmakuView - IDanmakuView
-     */
-    public override func getView () : IDanmakuView
 
     /*
      * 功能 - 设置宽度
@@ -484,7 +458,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 功能 - 设置可见性
      * 
      * 参数 visibility - 是否可见
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func setVisibility (visibility: Bool) : Unit
 
@@ -500,7 +474,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 
      * 参数 parser - BaseDanmakuParser的子类，需要使用者继承该类
      * 参数 config - 配置类DanmakuContext
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func prepare (parser: BaseDanmakuParser, config: DanmakuContext) : Unit
 
@@ -508,93 +482,78 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 功能 - 指定的时间点
      * 
      * 参数 ms - 毫秒值
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func seekTo (ms: Int64) : Unit
 
     /*
      * 功能 - 开始播放
      * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func start () : Unit
 
     /*
      * 功能 - 指定的时间点开始播放
      * 
-     * 参数 position - 时间点
-     * 返回值 Unit - unit
+     * 参数 position - 时间点，单位毫秒
+     * 返回值 Unit
      */
     public override func start (position: Int64) : Unit
 
     /*
-     * 功能 - 停止播放
+     * 功能 - 停止播放并释放弹幕资源，resume无法恢复。
      * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func stop () : Unit
 
     /*
      * 功能 - 暂停播放
      * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func pause () : Unit
 
     /*
-     * 功能 - 重新开始
+     * 功能 - 继续播放
      * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func resume () : Unit
 
     /*
-     * 功能 - 释放资源
+     * 功能 - 释放资源并停止播放，resume无法恢复。
      * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func release () : Unit
 
     /*
-     * 功能 - 转换
+     * 功能 - 转换播放状态。
      * 
-     * 返回值 Unit - unit 
+     * 返回值 Unit 
      */
     public override func toggle () : Unit
 
     /*
      * 功能 - 显示
      * 
-     * 返回值 Unit - unit 
+     * 返回值 Unit 
      */
     public override func show () : Unit
 
     /*
      * 功能 - 隐藏
      * 
-     * 返回值 Unit - unit 
+     * 返回值 Unit 
      */
     public override func hide () : Unit
 
     /*
-     * 功能 - 显示并恢复绘图任务
+     * 功能 - 清除当前已播放的弹幕
      * 
-     * 参数 position - 时间点毫秒值
-     * 返回值 Unit - unit
-     */
-    public override func showAndResumeDrawTask (position: Int64) : Unit
-
-    /*
-     * 功能 - 隐藏并暂停绘图任务
-     * 
-     * 返回值 Int64 - 成功返回1
-     */
-    public override func hideAndPauseDrawTask () : Int64
-
-    /*
-     * 功能 - 清除屏幕上的弹幕
-     * 
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func clearDanmakusOnScreen () : Unit
 
@@ -602,7 +561,7 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 功能 - 设置弹幕点击的监听器
      * 
      * 参数 listener - OnDanmakuClickListener
-     * 返回值 Unit - unit
+     * 返回值 Unit
      */
     public override func setOnDanmakuClickListener (listener: OnDanmakuClickListener) : Unit
 
@@ -610,76 +569,54 @@ public class DanmakuViewModel <: IDanmakuView & IDanmakuViewController {
      * 功能 - 设置弹幕点击的监听器
      * 
      * 参数 listener - OnDanmakuClickListener
-     * 参数 xOff - xoff
-     * 参数 yOff - yOff
-     * 返回值 Unit - unit
+     * 参数 xOff - xoff，X轴偏移量
+     * 参数 yOff - yOff，Y轴偏移量
+     * 返回值 Unit
      */
     public override func setOnDanmakuClickListener (listener: OnDanmakuClickListener, xOff: Float64, yOff: Float64) : Unit
-
-    /*
-     * 功能 - 获取在弹幕点击监听器
-     * 
-     * 返回值 OnDanmakuClickListener - 监听器
-     */
-    public override func getOnDanmakuClickListener () : OnDanmakuClickListener
-
-    /*
-     * 功能 - 获取x轴偏移量
-     * 
-     * 返回值 Float64 - x轴偏移量
-     */
-    public override func getXOff () : Float64
-
-    /*
-     * 功能 - 获取y轴偏移量
-     * 
-     * 返回值 Float64 - y轴偏移量
-     */
-    public override func getYOff () : Float64
-
-    /*
-     * 功能 - 强制渲染
-     * 
-     * 返回值 Unit - unit
-     */
-    public override func forceRender () : Unit
-
-    /*
-     * 功能 - 视图是否准备完毕
-     * 
-     * 返回值 Bool - 准备完成返回true
-     */
-    public override func isViewReady () : Bool
-
-    /*
-     * 功能 - 获取视图的宽度
-     * 
-     * 返回值 Float64 - 宽度
-     */
-    public override func getViewWidth () : Float64
-
-    /*
-     * 功能 - 获取视图高度
-     * 
-     * 返回值 Float64 - 高度
-     */
-    public override func getViewHeight () : Float64
-
-    /*
-     * 功能 - 渲染弹幕
-     * 
-     * 返回值 Int64 - 成功渲染返回1 
-     */
-    public override func drawDanmakus () : Int64
-
-    /*
-     * 功能 - 清空自定义组件资源
-     * 
-     * 返回值 Unit - unit
-     */
-    public override func clear () : Unit
 }
 
+/*
+ * 类名 - BaseDanmakuParser
+ * 功能 - BaseDanmaku解析器
+ */
+public abstract class BaseDanmakuParser {
+    
+    /*
+     * 功能 - 提供一个默认的json格式弹幕解析器。格式请参考 entry/src/main/resources/rawfile/z.json
+     * 
+     * 返回值 BaseDanmakuParser - BaseDanmakuParser
+     */
+    public static func getDefaultJsonDanmakuParser(): BaseDanmakuParser
+    
+    /*
+     * 功能 - 加载数据源
+     *
+     * 参数 IDataSource - 弹幕数据源
+     * 返回值 BaseDanmakuParser - BaseDanmakuParser
+     */
+    public func load(source: IDataSource): BaseDanmakuParser
+}
 
+/*
+ * 类名 - IDataSource
+ * 功能 - 弹幕数据源
+ */
+public interface IDataSource {
+    
+    /*
+     * 功能 - 获取数据源封装类型
+     * 
+     * 返回值 Any - 数据源封装类型
+     */
+    func data(): Any
+    
+    /*
+     * 功能 - 释放资源
+     * 
+     * 返回值 Unit
+     */
+    func release(): Unit
+}
 ```
 
