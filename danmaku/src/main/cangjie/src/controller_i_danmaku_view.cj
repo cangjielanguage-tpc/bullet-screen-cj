@@ -15,7 +15,6 @@ public interface IDanmakuView {
 
     public func isPaused(): Bool
 
-    // public func isHardwareAccelerated(): Bool
     /**
      *
      * @param type One of THREAD_TYPE_MAIN_THREAD, THREAD_TYPE_HIGH_PRIORITY, THREAD_TYPE_NORMAL_PRIORITY, or THREAD_TYPE_LOW_PRIORITY.

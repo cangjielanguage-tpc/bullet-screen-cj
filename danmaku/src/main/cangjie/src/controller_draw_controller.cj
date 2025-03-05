@@ -15,13 +15,9 @@ sealed interface IDanmakuViewController {
 
     public func getViewHeight(): Float64
 
-//    public Context getContext();
-
     public func drawDanmakus(): Int64
 
     public func clear(): Unit
-
-//    public func isHardwareAccelerated(): Bool
 
     public func isDanmakuDrawingCacheEnabled(): Bool
 

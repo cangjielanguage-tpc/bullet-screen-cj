@@ -29,7 +29,6 @@ class MainAbility <: Ability {
 
     public override func onWindowStageCreate(windowStage: WindowStage): Unit {
         let m = windowStage.getMainWindow()
-//        m.setPreferredOrientation(DANMAOrientation.LANDSCAPE)
         globalWindow = m
         AppLog.info("MainAbility onWindowStageCreate.")
         windowStage.loadContent("Index")
