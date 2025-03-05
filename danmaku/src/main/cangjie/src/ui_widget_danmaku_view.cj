@@ -169,6 +169,9 @@ public class DanmakuView {
      * @param item
      */
     func addDanmaku(item: BaseDanmaku): Unit { // from IDanmakuView
+        if (item.getType() <= BaseDanmaku.TYPE_SPECIAL) {
+            item.text = item.text.replace("\r", "\\r").replace("\n", "\\n")
+        }
         this.handler.addDanmaku(item)
     }
 
