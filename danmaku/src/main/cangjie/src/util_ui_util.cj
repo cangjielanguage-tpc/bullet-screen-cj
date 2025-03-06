@@ -29,7 +29,7 @@ public func measureTextWidth(text: String, paint: DanmakuPaint): Float64 {
 public func applyPaintToCanvas(paint: DanmakuPaint, context: ?DanmakuCanvas2D): Unit {
     if (let Some(v) <- context) {
         synchronized (v.lock) {
-            v.getContext().font(size: Length(paint.getTextSize(), unitType: LengthType.px), family: paint.getTypeface())
+            v.getContext().font(size: Length(paint.getTextSize(), unitType: LengthType.px),weight: if (paint.getFakeBoldText()){FontWeight.Bolder} else {FontWeight.Normal}, family: paint.getTypeface())
             v.getContext().lineWidth(paint.getStrokeWidth() / pxTovp)
             v.getContext().shadowBlur(paint.getRadius() / pxTovp)
             v.getContext().shadowOffsetX(paint.getDx() / pxTovp)

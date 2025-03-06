@@ -36,6 +36,10 @@ public abstract class BaseDanmakuParser {
         return this
     }
 
+    public static func getDefaultJsonDanmakuParser(): BaseDanmakuParser {
+        DefaultJsonDanmakuParser()
+    }
+
   public func getDisplayer(): ?IDisplayer {
     return this.mDisp
   }

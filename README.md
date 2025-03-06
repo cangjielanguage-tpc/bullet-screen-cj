@@ -27,8 +27,31 @@ bullet-screen-cj 是一款弹幕框架，支持发送纯文本弹幕、设置弹
 1. 支持左右滚动弹幕
 1. 支持弹幕播放暂停继续
 1. 支持纯文本弹幕
+1. 支持特殊弹幕
+1. 支持弹幕的图文混排
+1. 支持GIF弹幕
 1. 支持弹幕隐藏显示
 1. 支持设置弹幕显示区域大小
+
+## 软件架构
+```mermaid
+graph TD
+   root[基础弹幕]
+   RL[从右到左弹幕]
+   LR[从左到右弹幕]
+   TOP[顶部弹幕]
+   BOTTOM[底部弹幕]
+   SPECIAL[特殊弹幕]
+   TW[图文弹幕]
+   MORE[更多类型弹幕]
+   root --> RL
+   root --> LR
+   root --> TOP
+   root --> BOTTOM
+   root --> SPECIAL
+   root --> TW
+   root --> MORE
+```
 
 ### 源码目录
 
@@ -52,9 +75,50 @@ bullet-screen-cj 是一款弹幕框架，支持发送纯文本弹幕、设置弹
 主要类和函数接口说明详见 [API](doc/feature_api.md)
 
 ## 使用说明
+1. 通过 module 引入
+    1. 克隆下载项目
+    2. 将 danmaku 模块拷贝到应用项目下
+    3. 修改自身应用 entry 下的 oh-package.json5 文件，在 dependencies 字段添加 "danmaku": "file:../danmaku"
+      ```json
+      {
+         "name": "entry",
+         "version": "1.0.0",
+         "description": "Please describe the basic information.",
+         "main": "",
+         "author": "",
+         "license": "",
+         "dependencies": {
+            "danmaku": "file:../danmaku"
+         }
+      }
+      ```
+    4. 修改自身应用 entry/src/main/cangjie 下的 cjpm.toml 文件，在 [dependencies] 字段下添加 danmaku = {path = "../../../../danmaku/src/main/cangjie", version = "1.0.0"}
+    ```toml
+       [dependencies]
+           danmaku = {path = "../../../../danmaku/src/main/cangjie", version = "1.0.0"}
+    ```
+    5. 在项目中使用 import danmaku.* 引用 bullet-screen-cj 项目
+    ```cangjie
+   import danmaku.*
+    ```
+2. 把 bullet-screen-cj 作为三方库依赖引入
+    1. 目标工程把 bullet-screen-cj 依赖库作为 git submodule 引入
 
-### 编译构建
-
+    ```
+    > cd $工程根目录
+    > mkdir third-party
+    > cd third-party
+    > git submodule add "https://gitcode.com/Cangjie-TPC/bullet-screen-cj.git"
+    ```
+    2. 修改自身应用 entry/src/main/cangjie 下的 cjpm.toml 文件，添加依赖
+    ```toml
+    [dependencies]
+        danmaku = {path = "../../../../third-party/bullet-screen-cj/danmaku/src/main/cangjie", version = "1.0.0"}
+     ```
+    3. 在项目中使用 bullet-screen-cj 组件
+    ```cangjie
+    import danmaku.*
+    ```
 
 ### 功能示例
 

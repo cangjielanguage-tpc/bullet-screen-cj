@@ -102,7 +102,7 @@ class MyView {
         let parser: BaseDanmakuParser = if (testFile == "x.json") {
             ArktsDanmakuParser()
         } else {
-            DefaultJsonDanmakuParser()
+            BaseDanmakuParser.getDefaultJsonDanmakuParser()
         }
         var arr: Array<Byte> = Array<Byte>()
         if (let Some(v) <- globalAbilityContext) {
