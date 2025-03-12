@@ -25,7 +25,7 @@ public class DrawHelper {
            DrawHelper.PAINT_FPS = dp
        }
        let top: Int64 = Int64(canvas.height) -  15
-       DrawHelper.clearCanvasByPoints(canvas, 10.0, Float64(top) - 15.0, measureTextWidth(text, DrawHelper.PAINT_FPS()) + 20.0, canvas.height)
+       DrawHelper.clearCanvasByPoints(canvas, 10.0, Float64(top) - 15.0, (measureTextWidth(text, DrawHelper.PAINT_FPS()) + 50.0) / pxTovp, canvas.height)
 
        applyPaintToCanvas(DrawHelper.PAINT_FPS(), canvas)
        canvas.fillText(text, 15, top)
