@@ -597,7 +597,7 @@ public class DrawHandler <: Handler {
             return this.mDesireSeekingTime
         }
         if (this.quitFlag || !this.mInWaitingState) {
-            return this.timer.currMillisecond - this.mRemainingTime
+            return max(this.timer.currMillisecond - this.mRemainingTime, 0)
         }
         return SystemClock.uptimeMillis() - this.mTimeBase
     }

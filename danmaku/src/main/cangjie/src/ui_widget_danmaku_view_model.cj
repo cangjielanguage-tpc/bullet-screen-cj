@@ -232,11 +232,12 @@ public class DanmakuViewModel <: IDanmakuView {
         this.start(0)
     }
     public override func start(position: Int64): Unit {
+        let pos: Int64 = max(position, 0)
         if (let Some(v) <- this.delegate) {
-            v.start(position)
+            v.start(pos)
         } else {
             userArgs.append({
-                view => view.start(position)
+                view => view.start(pos)
             })
         }
     }

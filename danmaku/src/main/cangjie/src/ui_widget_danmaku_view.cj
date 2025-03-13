@@ -75,12 +75,14 @@ public class DanmakuView {
 
     func setViewWidth(w: Float64): Unit {
         this.viewWidth = w
+        this.context.width_ = w
     }
     func getViewWidth(): Float64 {
         this.viewWidth
     }
     func setViewHeight(h: Float64): Unit {
         this.viewHeight = h
+        this.context.height_ = h
     }
     func getViewHeight(): Float64 {
         this.viewHeight
