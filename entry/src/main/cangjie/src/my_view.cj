@@ -75,8 +75,8 @@ class MyView {
     }
 
     func viewInit() {
-        this.model.setWidth(1260)
-        this.model.setHeight(1260)
+        this.model.setWidth(lpx2px(720.lpx).getOrThrow().value)
+        this.model.setHeight(lpx2px(720.lpx).getOrThrow().value)
         let maxLinesPair: HashMap<Int64, Int64> = HashMap<Int64, Int64>()
         maxLinesPair.put(BaseDanmaku.TYPE_SCROLL_RL, 5) // 滚动弹幕最大显示5行
         // 设置是否禁止重叠
@@ -96,6 +96,7 @@ class MyView {
         this.model.setOnDanmakuClickListener(OnDanMu(this))
         this.model.prepare(this.mParser.getOrThrow(), this.mContext)
         this.model.showFPS(showIndex == 0)
+        this.model.backgroundColor(Color.GRAY)
     }
 
     private func createParser(): BaseDanmakuParser {
