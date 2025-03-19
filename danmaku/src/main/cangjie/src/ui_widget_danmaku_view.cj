@@ -32,10 +32,10 @@ public class DanmakuView {
     var ready: Bool = false
     @State
     @Watch[onRelayout]
-    var viewWidth: Float64 = 1920.0
+    var viewWidth: Float64 = lpx2px(720.lpx).getOrThrow().value
     @State
     @Watch[onRelayout]
-    var viewHeight: Float64 = 1080.0
+    var viewHeight: Float64 = lpx2px(720.lpx).getOrThrow().value
 
     var mHandlerThread: ?HandlerThread = None
 
@@ -128,17 +128,13 @@ public class DanmakuView {
     func setSvgCanvas(b: Bool) {
         Canvas(this.context.getContext())
             .onReady({
-                => this.ready = true
+                =>
+                    this.ready = true
+                    this.context.setWidthHeight(viewWidth / pxTovp , viewHeight / pxTovp)
             })
             .width(100.percent)
             .height(100.percent)
             .backgroundColor(Color.TRANSPARENT)
-            .onAreaChange({
-                _, new =>
-                this.context.setWidthHeight(new.width / pxTovp, new.height / pxTovp)
-                this.viewWidth = this.context.width_
-                this.viewHeight = this.context.height_
-            })
             .onDisAppear({=>
                 this.release()
             })
@@ -148,13 +144,13 @@ public class DanmakuView {
         Stack() {
             setSvgCanvas(pxTovpRes())
         }
-            .backgroundColor(this.mbackgroundColor)
-            .height(100.percent)
-            .width(100.percent)
-            .visibility(getVisible(this.mDanmakuVisible))
-            .onTouch({
-                event => this.onTouchEvent(event)
-            })
+        .backgroundColor(this.mbackgroundColor)
+        .width(model.getWidth().px)
+        .height(model.getHeight().px)
+        .visibility(getVisible(this.mDanmakuVisible))
+        .onTouch({
+            event => this.onTouchEvent(event)
+        })
     }
 
     func getVisible(b: Bool): Visibility {
