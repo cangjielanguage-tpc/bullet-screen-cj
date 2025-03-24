@@ -129,8 +129,9 @@ graph TD
 
 在下述版本验证通过：
 
-    DevEco Studio 5.0.2 Release
-    DevEco Studio Cangjie Plugin 5.0.7.100
+    DevEco Studio 5.0.9.300
+    Cangjie Support Plugin 5.0.9.100
+    Cangjie Compiler: 0.53.18 (cjnative)
 
 ## 开源协议
 
