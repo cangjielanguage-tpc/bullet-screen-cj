@@ -22,7 +22,6 @@ let DefaultDanmakuViewModel = DanmakuViewModel()
 
 @Component
 public class DanmakuView {
-    public static let TAG = "DanmakuView"
     @Link
     var model: DanmakuViewModel = DefaultDanmakuViewModel
     @State
