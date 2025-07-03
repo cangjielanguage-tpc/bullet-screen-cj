@@ -1,10 +1,12 @@
 {
-  "name": "danmaku",
-  "version": "1.0.0",
-  "description": "Please describe the basic information.",
+  "name": "@cangjie-tpc/danmaku",
+  "version": "2.0.0",
+  "description": "弹幕的播放、暂停或重置",
   "main": "",
-  "author": "",
+  "author": "cangjie-tpc",
+  "types": "./Index.d.ets",
   "license": "Apache-2.0",
+  "repository": "https://gitcode.com/Cangjie-TPC/bullet-screen-cj.git",
   "dependencies": {
   }
 }

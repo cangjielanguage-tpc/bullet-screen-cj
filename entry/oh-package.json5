@@ -6,7 +6,7 @@
   "author": "",
   "license": "",
   "dependencies": {
-    'danmaku': "file:../danmaku"
+    "@cangjie-tpc/danmaku": "file:../danmaku"
   }
 }
 
