@@ -3,10 +3,10 @@
 </div>
 
 <p align="center">
-<img alt="" src="https://img.shields.io/badge/release-v0.0.1-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/release-v2.0.0-brightgreen" style="display: inline-block;" />
 <img alt="" src="https://img.shields.io/badge/build-pass-brightgreen" style="display: inline-block;" />
-<img alt="" src="https://img.shields.io/badge/cjc-v0.53.20-brightgreen" style="display: inline-block;" />
-<img alt="" src="https://img.shields.io/badge/cjcov-NA%25-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/cjc-v1.1.3-brightgreen" style="display: inline-block;" />
+<img alt="" src="https://img.shields.io/badge/cjcov-90.1%25-brightgreen" style="display: inline-block;" />
 <img alt="" src="https://img.shields.io/badge/project-open-brightgreen" style="display: inline-block;" />
 </p>
 
@@ -16,8 +16,8 @@ bullet-screen-cj 是一款弹幕框架，支持发送纯文本弹幕、设置弹
 
 ## 效果展示
 <p align="left">
-<img src="./doc/danmaku2.jpg" width="30%" >
-<img src="./doc/danmaku1.jpg" width="30%" >
+<img src="https://raw.gitcode.com/Cangjie-TPC/bullet-screen-cj/blobs/ff88c5f08a159e305016342e43a301afb27f8e5f/danmaku1.jpg" width="30%" >
+<img src="https://raw.gitcode.com/Cangjie-TPC/bullet-screen-cj/blobs/fe2fc08deae683c32dbe7228df9906a1151511ba/danmaku2.jpg" width="30%" >
 </p>
 
 ### 特性
@@ -64,21 +64,20 @@ graph TD
 ├─danmaku                     # 弹幕库文件夹                   
 │  └─src
 │      └─main
-│          ├─cangjie
-│          │  └─src           # 库源代码目录
+│          ├─cangjie  # 库源代码目录
 │          └─resources
 ├─README.md                   # 弹幕库介绍及使用说明
 ```
 
 ### 接口说明
 
-主要类和函数接口说明详见 [API](doc/feature_api.md)
+主要类和函数接口说明详见 [API](./doc/feature_api.md)
 
 ## 使用说明
 1. 通过 module 引入
     1. 克隆下载项目
     2. 将 danmaku 模块拷贝到应用项目下
-    3. 修改自身应用 entry 下的 oh-package.json5 文件，在 dependencies 字段添加 "danmaku": "file:../danmaku"
+    3. 修改自身应用 entry 下的 oh-package.json5 文件，在 dependencies 字段添加 "@cangjie-tpc/danmaku": "file:../danmaku"
       ```json
       {
          "name": "entry",
@@ -88,14 +87,15 @@ graph TD
          "author": "",
          "license": "",
          "dependencies": {
-            "danmaku": "file:../danmaku"
+            "@cangjie-tpc/danmaku": "file:../danmaku"
          }
       }
       ```
-    4. 修改自身应用 entry/src/main/cangjie 下的 cjpm.toml 文件，在 [dependencies] 字段下添加 danmaku = {path = "../../../../danmaku/src/main/cangjie", version = "1.0.0"}
+    4. 修改自身应用 entry 下的 cjpm.toml 文件，在 [dependencies] 字段下添加 danmaku = {path = "${cangjie_tpc_danmaku}"}
     ```toml
        [dependencies]
-           danmaku = {path = "../../../../danmaku/src/main/cangjie", version = "1.0.0"}
+         [dependencies.danmaku]
+           path = "${cangjie_tpc_danmaku}"
     ```
     5. 在项目中使用 import danmaku.* 引用 bullet-screen-cj 项目
     ```cangjie
@@ -110,10 +110,11 @@ graph TD
     > cd third-party
     > git submodule add "https://gitcode.com/Cangjie-TPC/bullet-screen-cj.git"
     ```
-    2. 修改自身应用 entry/src/main/cangjie 下的 cjpm.toml 文件，添加依赖
+    2. 修改自身应用 entry 下的 cjpm.toml 文件，添加依赖
     ```toml
-    [dependencies]
-        danmaku = {path = "../../../../third-party/bullet-screen-cj/danmaku/src/main/cangjie", version = "1.0.0"}
+       [dependencies]
+         [dependencies.danmaku]
+           path = "${cangjie_tpc_danmaku}"
      ```
     3. 在项目中使用 bullet-screen-cj 组件
     ```cangjie
@@ -129,9 +130,12 @@ graph TD
 
 在下述版本验证通过：
 
-    DevEco Studio 5.0.13.200
-    Cangjie Support Plugin 5.0.13.200
-    Cangjie Compiler: 0.53.20 (cjnative)
+| 编号 | 依赖构建工具                                       | 版本号       |
+|----|----------------------------------------------|-----------|
+| 1  | **DevEco Studio**                            | 6.1.1.280 |
+| 2  | **cjc**                                      | v1.1.3    |
+| 3  | **DevEco Studio-Cangjie Plugin 6.1.1 Beta1** | 6.1.1.280 |
+| 4  | **compatibility-sdk-6.1.1.280**              | 6.1.1.280 |
 
 ## 开源协议
 

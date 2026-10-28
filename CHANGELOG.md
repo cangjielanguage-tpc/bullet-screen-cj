@@ -1,3 +1,15 @@
+## v2.0.0
+
+1. 适配升级 Cangjie Support Plugin 6.1.1.280
+
+## v1.0.3
+
+1. 适配升级 Cangjie Support Plugin 5.1.1.840
+
+## v1.0.2
+
+1. 适配升级 Cangjie Support Plugin 5.1.0.828
+
 ## v1.0.1
 
 1. 适配升级 Cangjie Support Plugin 5.0.13.200
